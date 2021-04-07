@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Multicollinearity</title>
+    <meta charset="utf-8" />
+    <script src="12_2_Collinearity_files/header-attrs-2.7/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Multicollinearity
+
+---
+
+
+
+
+class: inverse
+
+
+# Goals
+
+1. Defining collinearity of predictors
+
+2. Diagnosing collinearity
+
+3. Consequences of collinearity
+
+4. Addressing collinearity
+
+
+
+.footnote[Graham 2003. Confronting multicollinearity in ecological multiple regression. Ecology 84:2809-2815. (on Laulima)]
+
+---
+# The linear correlation coefficient
+
+**Correlation** is a measure of the strength and direction of linear association between two quantitative variables
+
+
+#### Review
+
+`$$-1 \leq  \rho \leq 1$$`
+
+`\(0 &lt; \rho \leq 1\)` : positive association
+
+`\(\rho = 1\)`: no association
+
+`\(-1 \leq \rho &lt; 0\)`: negative association
+
+We denote the true correlation as `\(\rho\)`. The sample estimate of the correlation is `\(r\)`:
+
+$$ r = \frac{\sum(X_i - \bar{X}) (Y_i - \bar{Y})}{\sqrt{\sum (X_i - \bar{X})^2 )}\sqrt{\sum (Y_i - \bar{Y})^2 )}}$$
+
+
+---
+
+class: center, middle, inverse
+
+# What is collinearity?
+
+---
+
+# Collinearity versus multicollinearity
+
+&lt;br&gt;
+
+**Collinearity** - when one predictor variable, `\(X_1\)`, is correlated with another, `\(X_2\)` *(it's just correlation)*
+
+**Multicollinearity** - when multiple independent variables are correlated with each other.
+
+---
+# Examples of collinear predictors
+
+- A person's height and weight
+
+- Monthly average temperature and max/min temperatures
+
+- Mean annual temperature and annual rainfall.
+
+&lt;br&gt;
+
+**Do you have similar examples from your
+study systems?**
+
+---
+# Type of collinearity
+
+- Variables that are collinear and each have their own separate “effect” on the response variable, Y
+  - Tigers avoid areas near human settlements and also areas
+with domestic animals
+  - Domestic animals tend to be found near human settlements
+  
+  
+- **Redundant** predictors have essentially the same meaning.
+  - various morphometric measures of body size (lengths, masses, ratios, areas)
+
+- **Compositional** variables have to sum to 1 (because last category is determined by others)
+  - percent cover of habitat types
+
+---
+# Symptoms of collinearity
+
+- Variables may be significant in simple linear regression, but not in multiple regression
+
+- Large standard errors in multiple regression models
+
+-  Large changes in coefficient estimates between full and
+reduced models
+
+
+---
+class: center, middle, inverse
+
+# Detecting multicollinearity
+
+---
+# Variance Inflation Factors
+
+Get the `\(R^2\)` coefficient for variable `\(x_j\)` as a function of other predictors:
+
+`\begin{align*}
+R^2_{x_j} =  \mathrm{lm}(x_j \sim x_1 + x_2 + \ldots + x_{j-1} + x_{j+1} + \ldots +x_k) 
+\end{align*}`
+
+Multicollinearity is then measured using the **variance inflation factor** (VIF): 
+
+`$$VIF(\hat{\beta_j}) = \frac{1}{1-R^2_{x_j}}$$`
+
+Can be calculated using `vif` in the `car` package.
+
+General rules of thumb:
+- Many suggest VIFs `\(&gt;\)` 10 are problematic
+- In my experience VIF's `\(&gt;\)` 3 can cause issues
+
+---
+# VIF vs `\(R^2\)`
+
+&lt;img src="12_2_Collinearity_files/figure-html/unnamed-chunk-2-1.png" width="85%" style="display: block; margin: auto;" /&gt;
+
+---
+# Potential consequences
+
+Models with collinear variables have: 
+
+- inflated standard errors
+
+- misleading estimates of effect
+
+- coefficients that are difficult to interpret
+
+---
+#Example:  Monet
+
+.pull-left[
+&lt;br&gt;
+
+
+```
+##      PRICE HEIGHT WIDTH   SIZE
+## 1 3.993780   21.3  25.6 545.28
+## 2 8.800000   31.9  25.6 816.64
+## 3 0.131694    6.9  15.9 109.71
+## 4 2.037500   25.7  32.0 822.40
+## 5 1.487500   25.7  32.0 822.40
+## 6 1.870000   25.6  31.9 816.64
+```
+]
+
+.pull-right[
+&lt;br&gt;
+
+&lt;img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Claude_Monet_-_Twilight%2C_Venice.jpg" width="85%" style="display: block; margin: auto 0 auto auto;" /&gt;
+]
+
+---
+# VIFs
+
+
+
+
+```r
+library(car)
+full.mod &lt;- lm(log(PRICE) ~ HEIGHT + WIDTH + SIZE, data=monet.dat)
+
+vif(full.mod)
+```
+
+```
+##    HEIGHT     WIDTH      SIZE 
+##  4.754569  6.013350 13.111192
+```
+
+&lt;br&gt;
+
+What to do now?
+
+---
+
+#  Strategies for handling collinearity
+
+Consider goals: if **prediction** is your goal collinearity may not be a problem.
+
+If **understanding** predictor effects is important, consider removing one more variables:
+
+
+```r
+nosize.mod &lt;- lm(log(PRICE) ~ HEIGHT + WIDTH, data=monet.dat)
+vif(nosize.mod)
+```
+
+```
+##  HEIGHT   WIDTH 
+## 1.33921 1.33921
+```
+or
+
+```r
+size.mod &lt;- lm(log(PRICE) ~ SIZE, data=monet.dat)
+```
+
+---
+# Other techniques
+
+- Create new predictors with Principle Components Analysis or Factor analysis
+
+- Ridge regression: gives better estimates of effects and SE's
+
+- Structural equation modeling 
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="http://jarrettbyrnes.info/pics/simple_path.png" alt="http://jarrettbyrnes.info"  /&gt;
+&lt;p class="caption"&gt;http://jarrettbyrnes.info&lt;/p&gt;
+&lt;/div&gt;
+
+---
+class:inverse
+
+# Summary
+
+* Collinearity is just the jargony name for correlation among predictors
+
+* Multicollinearity is the name for collinearity among more than two predictors
+
+* VIF is used to measure collinearity
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
