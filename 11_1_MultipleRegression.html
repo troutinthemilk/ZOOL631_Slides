@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Multiple linear regression</title>
+    <meta charset="utf-8" />
+    <script src="11_1_MultipleRegression_files/header-attrs-2.7/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Multiple linear regression
+
+---
+
+
+
+
+class: inverse
+
+
+# Goals
+
+&lt;br&gt;
+  
+1. Extend simple linear regression to account for multiple predictors
+
+2. Interpret slope and intercept estimates
+
+3. Interpret interaction terms
+
+
+
+
+
+---
+# Prices of Monet paintings
+
+.pull-left[
+&lt;div class="figure" style="text-align: right"&gt;
+&lt;img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Claude_Monet_-_Champ_de_bl%C3%A9.jpg/1119px-Claude_Monet_-_Champ_de_bl%C3%A9.jpg" alt="Image from wikimedia.org" width="85%" /&gt;
+&lt;p class="caption"&gt;Image from wikimedia.org&lt;/p&gt;
+&lt;/div&gt;
+]
+
+.pull-right[
+![](11_1_MultipleRegression_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
+]
+
+.footnote[data from: http://pages.stern.nyu.edu/~wgreene/Text/Edition7/tablelist8new.htm]
+
+---
+# A model  
+
+
+```r
+monet.mod  &lt;- lm(PRICE ~ SIZE + HOUSE, data=monet.dat)
+summary(monet.mod)
+```
+
+```
+## 
+## Call:
+## lm(formula = PRICE ~ SIZE + HOUSE, data = monet.dat)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -6.273 -2.037 -1.012  0.662 27.126 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -1.3421516  0.6002300  -2.236   0.0259 *  
+## SIZE         0.0048434  0.0006022   8.043 9.59e-15 ***
+## HOUSE2       0.5508707  0.4006872   1.375   0.1699    
+## HOUSE3      -0.4420160  0.8725283  -0.507   0.6127    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 3.931 on 409 degrees of freedom
+## Multiple R-squared:  0.1486,	Adjusted R-squared:  0.1423 
+## F-statistic: 23.79 on 3 and 409 DF,  p-value: 3.262e-14
+```
+
+---
+# The coefficient of determination
+
+The `R-squared` value generalizes correlation to multiple predictor variables. 
+
+It measures how much variation in the **response** is explained by variation in all the **predictors**. In other words, how much better does our model do than an intercept-only model?
+
+`\begin{align*}
+R^2 &amp;= 1 - \frac{\sum(\beta_0 + \beta_1x-y_i)^2}{\sum(\beta_0-y_i)^2}\\
+0 &amp;\leq R^2 \leq 1
+\end{align*}`
+
+--
+
+As you add predictors to the model the `\(R^2\)` value always increases!
+
+---
+# Interpreting the output
+
+```r
+summary(monet.mod)$coef
+```
+
+```
+##                 Estimate   Std. Error    t value     Pr(&gt;|t|)
+## (Intercept) -1.342151602 0.6002300295 -2.2360621 2.588637e-02
+## SIZE         0.004843393 0.0006022223  8.0425343 9.594054e-15
+## HOUSE2       0.550870700 0.4006872066  1.3748148 1.699416e-01
+## HOUSE3      -0.442016004 0.8725282523 -0.5065922 6.127140e-01
+```
+
+Now the **intercept** parameter is the value when the `SIZE` of the painting is 0 and at the reference level (in this case auction house `HOUSE1`).
+
+The `HOUSE2` parameter tells us that the average price is higher for second auction house relative to the first
+
+The `HOUSE3` parameter tells us that the average price is lower for second auction house relative to the first
+
+The **SLOPE** parameter of `SIZE` tells us how fast the price increases with the size of the painting.
+
+---
+# Plotting the output
+
+We will use the `sjPlot` library to visualize model fits. 
+
+
+```r
+library(sjPlot)
+plot_model(monet.mod, type="pred", terms=c("SIZE", "HOUSE"), show.data=TRUE, axis.lim=c(-1,10), colors=wes_palette("BottleRocket2"))
+```
+
+&lt;img src="11_1_MultipleRegression_files/figure-html/unnamed-chunk-8-1.png" width="70%" style="display: block; margin: auto;" /&gt;
+
+--
+
+Each `HOUSE` has the same slope and different intercept
+
+
+---
+# Diagnostics
+
+&lt;img src="11_1_MultipleRegression_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;" /&gt;
+
+Are the residuals normally distributed?
+
+
+---
+# Interactions
+  
+In the previous model the intercept varied by auction house. In this model **both** the intercept and slope vary.
+
+
+```r
+monet.mod2  &lt;- lm(PRICE ~ SIZE * HOUSE, data=monet.dat)
+coef(summary(monet.mod2))
+```
+
+```
+##                  Estimate   Std. Error    t value     Pr(&gt;|t|)
+## (Intercept) -1.1340749614 0.8288422480 -1.3682639 1.719843e-01
+## SIZE         0.0046046089 0.0008904523  5.1710899 3.658083e-07
+## HOUSE2      -0.1479775599 1.1259553086 -0.1314240 8.955048e-01
+## HOUSE3       0.9710124172 1.7922670931  0.5417789 5.882673e-01
+## SIZE:HOUSE2  0.0008386604 0.0012446358  0.6738199 5.008083e-01
+## SIZE:HOUSE3 -0.0025995930 0.0025613783 -1.0149196 3.107471e-01
+```
+
+Original parameters have the same interpretation as before, but now `SIZE` is the slope associated with `HOUSE1` only.
+
+`HOUSE2` is still the deviation of the **intercept** away from `HOUSE1`
+
+`SIZE:HOUSE2` is the deviation of the **slope** from `HOUSE1`.
+
+
+---
+
+# Interactions
+&lt;img src="11_1_MultipleRegression_files/figure-html/unnamed-chunk-11-1.png" style="display: block; margin: auto;" /&gt;
+
+--
+
+Each `HOUSE` has the same slope and different intercept
+
+---
+# Simpson's paradox
+
+The **paradox** occurs when trends of a grouped set of data change or reverse within each group.
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="https://paulvanderlaken.files.wordpress.com/2017/09/simpsonsparadox.png?w=1108&amp;h=737&amp;" alt="image: https://paulvanderlaken.com/" width="75%" /&gt;
+&lt;p class="caption"&gt;image: https://paulvanderlaken.com/&lt;/p&gt;
+&lt;/div&gt;
+
+---
+# Example from my research (sort of)
+.pull-left[
+&lt;img src="11_1_MultipleRegression_files/figure-html/unnamed-chunk-13-1.png" style="display: block; margin: auto;" /&gt;
+]
+.pull-right[
+.center[.![](https://media.giphy.com/media/1FJayrPE7XGDe/giphy.gif)]
+.footnote[image: giphy.com]
+
+]
+Estimated strength of density dependence `\(\hat{\beta} = -0.003 (0.0005)\)`. Weak but statistically significant effect of density
+
+
+---
+# Beavers II
+
+&lt;img src="11_1_MultipleRegression_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
+
+Average strength of density dependence within a route, `\(\hat{\beta} = -0.14\)`. This indicates strong density dependence.
+---
+# Use caution with interactions
+
+Note that interaction terms should be added with caution, only include them when you there is a reasonable interpretation (in the Monet example I would not think that the `SIZE*HOUSE` interaction is justified without more information about the auction houses). It is easy to get carried away!
+
+
+---
+class: inverse
+# Summary
+
+- `\(R^2\)` is an extension of correlation for multiple variables.
+
+
+- Interpretation of coefficients is similar to simple regression
+  - categorical variables influence the intercept
+  - interactions influence the slope and intercept
+  
+- Interaction terms always include the additive term as well
+
+though interactions allow for slopes to vary by group
+
+- Diagnostic plots can be used just like in simple regression
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

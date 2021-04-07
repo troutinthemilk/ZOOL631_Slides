@@ -1,0 +1,263 @@
+---
+title: "Multicollinearity"
+output:
+  xaringan::moon_reader:
+     css: xaringan-themer.css
+     nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options: 
+  chunk_output_type: console
+header-includes :
+  - \usepackage {amsmath}
+  - \usepackage{mathrsfs}
+---
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#024731",
+#  header_font_google = google_font("Josefin Sans"),
+#  text_font_google   = google_font("Montserrat", "300", "300i"),
+#  code_font_google   = google_font("Fira Mono")
+)
+```
+
+class: inverse
+```{r, echo=F, message=F, warning=F, eval=T}
+#setting up my ggplot defaults. Update with your own preferences
+library(ggplot2)#plotting functions
+library(wesanderson)
+library(RColorBrewer)
+library(MASS)
+library(mvtnorm)
+library(gridExtra)
+
+theme_set(theme_classic()) # a theme I like.
+theme_update(plot.title = element_text(hjust = 0.5), 
+             axis.line.x = element_line(color="black", size = 1),
+             axis.line.y = element_line(color="black", size = 1),
+             text=element_text(size=20),
+             axis.text=element_text(size=15)) #center all titles and and axis lines
+```
+
+# Goals
+
+1. Defining collinearity of predictors
+
+2. Diagnosing collinearity
+
+3. Consequences of collinearity
+
+4. Addressing collinearity
+
+
+
+.footnote[Graham 2003. Confronting multicollinearity in ecological multiple regression. Ecology 84:2809-2815. (on Laulima)]
+
+---
+# The linear correlation coefficient
+
+**Correlation** is a measure of the strength and direction of linear association between two quantitative variables
+
+
+#### Review
+
+$$-1 \leq  \rho \leq 1$$
+
+$0 < \rho \leq 1$ : positive association
+
+$\rho = 1$: no association
+
+$-1 \leq \rho < 0$: negative association
+
+We denote the true correlation as $\rho$. The sample estimate of the correlation is $r$:
+
+$$ r = \frac{\sum(X_i - \bar{X}) (Y_i - \bar{Y})}{\sqrt{\sum (X_i - \bar{X})^2 )}\sqrt{\sum (Y_i - \bar{Y})^2 )}}$$
+
+
+---
+
+class: center, middle, inverse
+
+# What is collinearity?
+
+---
+
+# Collinearity versus multicollinearity
+
+<br>
+
+**Collinearity** - when one predictor variable, $X_1$, is correlated with another, $X_2$ *(it's just correlation)*
+
+**Multicollinearity** - when multiple independent variables are correlated with each other.
+
+---
+# Examples of collinear predictors
+
+- A person's height and weight
+
+- Monthly average temperature and max/min temperatures
+
+- Mean annual temperature and annual rainfall.
+
+<br>
+
+**Do you have similar examples from your
+study systems?**
+
+---
+# Type of collinearity
+
+- Variables that are collinear and each have their own separate “effect” on the response variable, Y
+  - Tigers avoid areas near human settlements and also areas
+with domestic animals
+  - Domestic animals tend to be found near human settlements
+  
+  
+- **Redundant** predictors have essentially the same meaning.
+  - various morphometric measures of body size (lengths, masses, ratios, areas)
+
+- **Compositional** variables have to sum to 1 (because last category is determined by others)
+  - percent cover of habitat types
+
+---
+# Symptoms of collinearity
+
+- Variables may be significant in simple linear regression, but not in multiple regression
+
+- Large standard errors in multiple regression models
+
+-  Large changes in coefficient estimates between full and
+reduced models
+
+
+---
+class: center, middle, inverse
+
+# Detecting multicollinearity
+
+---
+# Variance Inflation Factors
+
+Get the $R^2$ coefficient for variable $x_j$ as a function of other predictors:
+
+\begin{align*}
+R^2_{x_j} =  \mathrm{lm}(x_j \sim x_1 + x_2 + \ldots + x_{j-1} + x_{j+1} + \ldots +x_k) 
+\end{align*}
+
+Multicollinearity is then measured using the **variance inflation factor** (VIF): 
+
+$$VIF(\hat{\beta_j}) = \frac{1}{1-R^2_{x_j}}$$
+
+Can be calculated using `vif` in the `car` package.
+
+General rules of thumb:
+- Many suggest VIFs $>$ 10 are problematic
+- In my experience VIF's $>$ 3 can cause issues
+
+---
+# VIF vs $R^2$
+
+```{r, fig.align="center", fig.asp=1/1.62, out.width="85%", echo=F}
+R.sq <- seq(0, 1, length.out=1e3)
+VIF <- 1/(1-R.sq)
+
+plot(R.sq, VIF, type='l', xlab=expression(R^2), ylab="VIF", log="y")
+```
+
+---
+# Potential consequences
+
+Models with collinear variables have: 
+
+- inflated standard errors
+
+- misleading estimates of effect
+
+- coefficients that are difficult to interpret
+
+---
+#Example:  Monet
+
+.pull-left[
+<br>
+
+```{r, echo=F}
+monet.dat <- read.csv(file="../Data/monet.csv", header=TRUE)
+monet.dat$HOUSE <- as.factor(monet.dat$HOUSE)
+monet.dat$SIGNED <- as.factor(monet.dat$SIGNED)
+monet.dat <- monet.dat[,-(4:6)]
+head(monet.dat)
+```
+]
+
+.pull-right[
+<br>
+
+```{r, echo=F, out.width="85%", fig.align="right"}
+knitr::include_graphics("https://upload.wikimedia.org/wikipedia/commons/b/b1/Claude_Monet_-_Twilight%2C_Venice.jpg")
+```
+]
+
+---
+# VIFs
+
+```{r, echo=F, eval=F}
+full.mod <- lm(Response ~ OD + BD + LTD + W, data=graham.dat)
+#not currently used
+```
+
+```{r, warning=F, message=F}
+library(car)
+full.mod <- lm(log(PRICE) ~ HEIGHT + WIDTH + SIZE, data=monet.dat)
+
+vif(full.mod)
+```
+
+<br>
+
+What to do now?
+
+---
+
+#  Strategies for handling collinearity
+
+Consider goals: if **prediction** is your goal collinearity may not be a problem.
+
+If **understanding** predictor effects is important, consider removing one more variables:
+
+```{r}
+nosize.mod <- lm(log(PRICE) ~ HEIGHT + WIDTH, data=monet.dat)
+vif(nosize.mod)
+```
+or
+```{r}
+size.mod <- lm(log(PRICE) ~ SIZE, data=monet.dat)
+```
+
+---
+# Other techniques
+
+- Create new predictors with Principle Components Analysis or Factor analysis
+
+- Ridge regression: gives better estimates of effects and SE's
+
+- Structural equation modeling 
+
+```{r, echo=F, fig.cap="http://jarrettbyrnes.info", fig.align="center"}
+knitr::include_graphics("http://jarrettbyrnes.info/pics/simple_path.png")
+```
+
+---
+class:inverse
+
+# Summary
+
+* Collinearity is just the jargony name for correlation among predictors
+
+* Multicollinearity is the name for collinearity among more than two predictors
+
+* VIF is used to measure collinearity
+
