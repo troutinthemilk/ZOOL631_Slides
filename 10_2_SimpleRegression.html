@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Simple linear regression</title>
+    <meta charset="utf-8" />
+    <script src="10_2_SimpleRegression_files/header-attrs-2.7/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Simple linear regression
+
+---
+
+
+
+
+class: inverse
+
+
+# Goals
+
+&lt;br&gt;
+  
+1. Understand a simple regression line
+
+2. Interpret slope and intercept estimates
+
+3. Interpret t-tests reported by lm
+
+
+---
+
+# Simple linear regression
+
+The goal is to fit a line that could have genererated the data. Estimates the **intercept** and slope of the line **slope**, as well as the **variance** in the residuals. 
+
+$$
+`\begin{align*}
+E(Y) &amp;= \beta_0 + \beta_1 x \\
+Var(Y) &amp;= \sigma^2 \\
+Y &amp;\sim N(\beta_0 + \beta_1 x,\, \sigma^2)
+\end{align*}`
+$$
+
+
+&lt;img src="10_2_SimpleRegression_files/figure-html/unnamed-chunk-3-1.png" width="60%" style="display: block; margin: auto;" /&gt;
+
+---
+# Assumptions of `lm`'s
+
+- Residuals (not the data) follow a normal distribution with mean 0 and constant variance `\(\sigma^2\)`
+
+- Observations are independent
+
+- Predictors can be expressed as an additive combinations.
+
+---
+
+# Fitting models
+
+- Fitting process minimizes residuals (very similar to maximum likelihood though estimator for `\(\hat{\sigma}\)` differs slightly)
+
+- Assumes error is in `\(Y\)`, not `\(x\)` (e.g., no measurement error)!
+
+- `\(\beta_0\)` is the value of `\(E[Y]\)` when `\(x=0\)`.
+
+- `\(\beta_1\)` measures how we expect `\(Y\)` to respond to changes in `\(x\)`. 
+
+
+
+---
+# Fitting `lm`'s in R
+
+syntax `lm(Y ~ x, data=data.frame)`.
+
+- `lm` stands for linear model.
+
+- `Y` is called the **response** variable stored in the `data.frame` 
+
+- `x` is the **predictor** variable stored in the `data.frame`
+
+
+---
+# The intercept-only model
+
+
+```r
+intercept.only &lt;- lm(TotalSleep ~ 1, data=sleep.dat)
+
+summary(intercept.only)
+```
+
+```
+## 
+## Call:
+## lm(formula = TotalSleep ~ 1, data = sleep.dat)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -8.2974 -2.6474 -0.0474  2.3776  9.0026 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  10.8974     0.7331   14.87   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.519 on 37 degrees of freedom
+##   (4 observations deleted due to missingness)
+```
+
+
+---
+# Hypothesis tests in `lm`
+
+This model just estimates the mean of the response variable.
+
+`\begin{align*}
+\hat{\beta}_0 &amp;= 10.90\,\, ( 0.73)\\
+t(37) &amp;= 14.87,\,\, p&lt;2\cdot 10^{-16}
+\end{align*}`
+
+
+What is `\(H_0\)`?
+
+
+---
+# The sleep dataset 
+
+Does an animals brain size predict how much they sleep?
+
+.pull-left[
+.![](https://media.giphy.com/media/d5mI2F3MxCTJu/giphy.gif)
+.footnote[image: giphy.com]
+
+]
+.pull-right[
+![](10_2_SimpleRegression_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
+]
+
+---
+# The `lm` object
+
+Printing gives the basics
+
+
+```r
+sleep.lm &lt;- lm(TotalSleep ~ BrainWt, data=sleep.dat)
+sleep.lm
+```
+
+```
+## 
+## Call:
+## lm(formula = TotalSleep ~ BrainWt, data = sleep.dat)
+## 
+## Coefficients:
+## (Intercept)      BrainWt  
+##   11.572422    -0.006194
+```
+
+---
+# The residuals
+
+&lt;img src="10_2_SimpleRegression_files/figure-html/unnamed-chunk-7-1.png" style="display: block; margin: auto;" /&gt;
+
+A residual is the difference between an observation `\((Y_i)\)` and the value predicted by the regression line `\((E(Y_i))\)`
+`\begin{align*}
+E[\mathrm{residuals}] &amp;= 0\\
+Var[\mathrm{residuals}] &amp;= \sigma^2
+\end{align*}`
+
+( `\(\hat{\sigma}\)` is called the residual standard error in R)
+
+---
+# The normality assumption
+
+The assumption of `lm` is that the **residuals** (not the data) follow a normal distribution. This is a pretty robust assumption except in extreme cases (*e.g., count data with low counts*)
+
+&lt;img src="10_2_SimpleRegression_files/figure-html/unnamed-chunk-8-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# The `lm` `summary`
+
+This gives lots of detail
+
+
+```r
+summary(sleep.lm)
+```
+
+```
+## 
+## Call:
+## lm(formula = TotalSleep ~ BrainWt, data = sleep.dat)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -8.3641 -2.9410 -0.1412  2.2388  8.3291 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 11.572422   0.770543  15.019   &lt;2e-16 ***
+## BrainWt     -0.006194   0.002934  -2.111   0.0418 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.322 on 36 degrees of freedom
+##   (4 observations deleted due to missingness)
+## Multiple R-squared:  0.1102,	Adjusted R-squared:  0.08547 
+## F-statistic: 4.458 on 1 and 36 DF,  p-value: 0.04175
+```
+
+---
+# Lets go through the `summary`
+
+- Slope and intercept estimates:
+
+```
+##                 Estimate  Std. Error   t value     Pr(&gt;|t|)
+## (Intercept) 11.572422384 0.770543402 15.018521 4.450444e-17
+## BrainWt     -0.006194472 0.002933888 -2.111352 4.175088e-02
+```
+
+
+- df (degrees of freedom used in the t-tests, df=n-1-#betas)
+
+```
+## [1] 36
+```
+
+
+
+- Residual standard error ( `\(\sigma\)`, the standard deviation of the residuals)
+
+```
+## [1] 4.321744
+```
+
+
+
+- Multiple R-squared (the squareroot of the correlation coefficient!)
+
+```
+## [1] 0.1101841
+```
+
+---
+#Diagnostic plots
+
+#### The residual plot
+
+Does the variance change with the fitted value?
+
+
+```r
+plot(sleep.lm, which=1)
+```
+
+&lt;img src="10_2_SimpleRegression_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+#Diagnostic plots
+
+#### The quantile-quantile plot
+
+Do the residuals follow a normal distribution?
+
+```r
+plot(sleep.lm, which=2)
+```
+
+&lt;img src="10_2_SimpleRegression_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# Extracting confidence intervals
+
+
+```r
+confint(sleep.lm)
+```
+
+```
+##                   2.5 %        97.5 %
+## (Intercept) 10.00968793 13.1351568339
+## BrainWt     -0.01214467 -0.0002442709
+```
+
+
+---
+# Categorical predictors
+
+#### Glass shape
+
+.pull-left[
+&lt;img src="10_2_SimpleRegression_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+![from giphy.com](https://media.giphy.com/media/3d4NMOaQrdF8gtx1e8/giphy.gif)
+
+.footnote[image: giphy.com]
+]
+
+---
+# Effects coding
+.pull-left[
+
+```r
+effects.lm &lt;- lm(drinkingMinutes ~ glassShape, data=beer.dat)
+round(summary(effects.lm)$coef[,c(1,2,4)], 4)#effects coding
+```
+
+```
+##                    Estimate Std. Error Pr(&gt;|t|)
+## (Intercept)          7.5933     1.5629   0.0001
+## glassShapestraight   7.3197     2.1543   0.0034
+```
+]
+
+.pull-right[
+The reported effect for males is the difference with respect to a **reference level** (females in this case). In this case it tests whether male size differs significantly from female size (it doesn't).
+
+```r
+head(model.matrix(effects.lm)[c(1:3, 17:19),])
+```
+
+```
+##    (Intercept) glassShapestraight
+## 1            1                  1
+## 2            1                  1
+## 3            1                  1
+## 17           1                  0
+## 18           1                  0
+## 19           1                  0
+```
+]
+
+---
+# Means coding
+
+.pull-left[
+
+```r
+means.lm &lt;- lm(drinkingMinutes ~ glassShape-1, data=beer.dat)
+summary(means.lm)$coef[,c(1,2,4)] 
+```
+
+```
+##                     Estimate Std. Error     Pr(&gt;|t|)
+## glassShapecurved    7.593333   1.562906 1.474958e-04
+## glassShapestraight 14.913000   1.482703 1.422380e-08
+```
+]
+
+.pull-right[
+The reported t-test measures the difference with respect to 0. In this case it tests whether males differ significantly from females.
+
+```r
+head(model.matrix(means.lm)[c(1:3, 17:19),])
+```
+
+```
+##    glassShapecurved glassShapestraight
+## 1                 0                  1
+## 2                 0                  1
+## 3                 0                  1
+## 17                1                  0
+## 18                1                  0
+## 19                1                  0
+```
+]
+
+
+.footnote[There are other possible codings: https://stats.idre.ucla.edu/r/library/r-library-contrast-coding-systems-for-categorical-variables/]
+
+---
+#Effects coding
+
+&lt;br&gt;
+
+In the effects coding (R's default) the parameter estimate is the deviation from the intercept. Usually this is what you want, because it allows you to see if categorical levels differ.
+&lt;br&gt;
+
+If `\(x=0\)`, the effect is "off"
+
+$$E[y] = \beta_0 + \beta_1 \cdot 0 $$
+
+If `\(x=1\)`, the effect is "on"
+
+`$$E[y] = \beta_0 + \beta_1 \cdot 1$$`
+
+
+
+
+---
+# Summary
+
+- Fit continuous response data to one or more predictors with regression
+
+- Interpret output of model fits and hypothesis tests
+
+- Introduction to diagnostic figures
+
+---
+class: inverse
+# Summary
+
+- Correlation measures the strength and direction of **linear association** between two continuous variables.
+
+- The correlation estimate, `\(r\)`, will be reduced by **measurement error**
+
+- The correlation is not the same as the slope. 
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

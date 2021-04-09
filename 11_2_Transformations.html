@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Transforming response variables</title>
+    <meta charset="utf-8" />
+    <script src="11_2_Transformations_files/header-attrs-2.7/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Transforming response variables
+
+---
+
+
+
+
+
+
+# Goals
+
+&lt;br&gt;
+  
+  &lt;br&gt;
+  
+1. Transforming data vs nonlinear models
+
+2. Fit nonlinear models to data 
+
+3. Assessing nonlinear model fits
+
+---
+# A polynomial curve
+
+.pull-left[
+&lt;br&gt;
+
+&lt;br&gt;
+
+`$$Y = \beta_0  +\beta_1 x + \beta_2 x^2+ \beta_3 x^3$$`
+]
+
+.pull-right[
+&lt;img src="11_2_Transformations_files/figure-html/unnamed-chunk-1-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+&lt;br&gt;
+ 
+... but if we let `\(z_1 = x\)`,  `\(z_2 = x^2\)`,  `\(z_3 = x^3\)` then
+
+`$$Y = \beta_0  +\beta_1 z_1 + \beta_2 z_2 + \beta_3 z_3.$$`
+
+--
+&lt;br&gt;
+
+So this is a linear model (it's linear in terms of the `\(\beta\)`'s).
+---
+# What is a nonlinearity?
+
+Many functions emerge from biological phenomenon that cannot be modeled as an additive function. Often these are the results of differential equation models
+
+Sometimes we can transform nonlinear data to be linear (e.g., log-transforms), but sometimes we cannot
+
+.pull-left[
+The logistic model:
+
+`\begin{align*}
+\frac{dN}{dt} &amp;= rN\left( 1-\frac{N}{K} \right) \\
+N(t) &amp;= \frac{K e^{rt}}{K  -1 + e^{rt} }
+\end{align*}`
+
+
+]
+.pull-right[
+&lt;img src="11_2_Transformations_files/figure-html/unnamed-chunk-2-1.png" width="80%" /&gt;
+
+
+]
+
+.footnote[https://en.wikipedia.org/wiki/Logistic_function#In_ecology:_modeling_population_growth]
+
+---
+# How to handle nonlinearity
+
+1. **Transform** data to achieve linearity and normality then use `lm`
+
+2. Directly model nonlinearity using nonlinear regression (`nls` or `optim`)
+
+
+---
+class:inverse
+
+# Transforming data
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="https://images-na.ssl-images-amazon.com/images/I/81NLWqmleoL._AC_SL1500_.jpg" alt="image: amazon.com" width="45%" /&gt;
+&lt;p class="caption"&gt;image: amazon.com&lt;/p&gt;
+&lt;/div&gt;
+
+---
+# The Monet dataset
+
+
+
+.pull-left[
+&lt;div class="figure" style="text-align: right"&gt;
+&lt;img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Claude_Monet%2C_Houses_of_Parliament%2C_London%2C_1900-1903%2C_1933.1164%2C_Art_Institute_of_Chicago.jpg" alt="Image from wikimedia.org" width="85%" /&gt;
+&lt;p class="caption"&gt;Image from wikimedia.org&lt;/p&gt;
+&lt;/div&gt;
+]
+
+.pull-right[
+![](11_2_Transformations_files/figure-html/unnamed-chunk-6-1.png)&lt;!-- --&gt;
+]
+
+
+---
+# Transforming data
+
+We can potentially log-transform the response variable, this will modify both the **mean** and the **variance** of the data. 
+
+&lt;img src="11_2_Transformations_files/figure-html/unnamed-chunk-7-1.png" style="display: block; margin: auto;" /&gt;
+
+Once transformed the conditions for linear regression *may* be met.
+
+---
+# Steps 
+
+1. Determine suitable transform to achieve normality and/or linearity
+
+2. Apply linear regression model
+
+3. Examine residuals
+
+4. Back-transform results (when needed)
+
+---
+# Common transforms
+
+- **Natural logarithm** typically used for strictly positive, continuous data or for count response variables. Data should exhibits increasing variance with the mean.
+`$$Y^{\prime} = \ln(Y)$$`
+
+- **Squareroot** typically used for count data. Data should exhibits increasing variance with the mean. Pretty similar to natural log, either can often be used.
+`$$Y^{\prime} = \sqrt{Y + 1/2}$$`
+
+- **Logit** used for proportional data. `$$Y^{\prim    e} = \ln{\frac{p}{1-p}}$$`
+
+
+---
+# Monet revisited
+
+&lt;img src="11_2_Transformations_files/figure-html/unnamed-chunk-8-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# Doing it
+.pull-left[
+### Mathematics
+`\begin{align*}
+\ln(Y) &amp;= \beta_0 + \beta_1 X_1 + \varepsilon\\
+Y &amp;= e^{\beta_0 + \beta_1 X_1 + \varepsilon}
+\end{align*}`
+
+So now `\(Y=e^{\beta_0}\)` when `\(X=0\)`. Thus, `\(Y\rightarrow 0\)` as `\(\beta_0 \rightarrow \infty\)`.
+
+]
+.pull-right[
+### Code
+
+
+
+```r
+mod1 &lt;- lm(log(PRICE) ~ HOUSE*SIZE, data=monet.dat)
+par(mfrow=c(1,2))
+plot(mod1, which=1)
+plot(mod1, which=2)
+```
+
+&lt;img src="11_2_Transformations_files/figure-html/unnamed-chunk-10-1.png" style="display: block; margin: auto 0 auto auto;" /&gt;
+
+]
+---
+# `summary`
+
+
+```r
+summary(mod1)
+```
+
+```
+## 
+## Call:
+## lm(formula = log(PRICE) ~ HOUSE * SIZE, data = monet.dat)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -4.6855 -0.7200 -0.1014  0.7475  3.0386 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -1.1354332  0.2328026  -4.877 1.55e-06 ***
+## HOUSE2      -0.2358010  0.3162548  -0.746 0.456337    
+## HOUSE3      -1.8840253  0.5034063  -3.743 0.000208 ***
+## SIZE         0.0017627  0.0002501   7.048 7.82e-12 ***
+## HOUSE2:SIZE  0.0003322  0.0003496   0.950 0.342478    
+## HOUSE3:SIZE  0.0012017  0.0007194   1.670 0.095633 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.104 on 407 degrees of freedom
+## Multiple R-squared:  0.3252,	Adjusted R-squared:  0.3169 
+## F-statistic: 39.23 on 5 and 407 DF,  p-value: &lt; 2.2e-16
+```
+
+---
+# Transforming back
+
+
+```r
+library(sjPlot)
+plot_model(mod1, type="pred", terms=c("SIZE", "HOUSE"), show.data=TRUE, colors=wes_palette("GrandBudapest1"), axis.lim=c(0, 50))
+```
+
+&lt;img src="11_2_Transformations_files/figure-html/unnamed-chunk-12-1.png" width="85%" style="display: block; margin: auto;" /&gt;
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

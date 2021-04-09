@@ -1,0 +1,244 @@
+---
+title: "Transforming response variables"
+output:
+  xaringan::moon_reader:
+     css: xaringan-themer.css
+     nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options: 
+  chunk_output_type: console
+header-includes :
+  - \usepackage {amsmath}
+  - \usepackage{mathrsfs}
+---
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_mono_accent(
+  base_color = "#024731",
+#  header_font_google = google_font("Josefin Sans"),
+#  text_font_google   = google_font("Montserrat", "300", "300i"),
+#  code_font_google   = google_font("Fira Mono")
+)
+```
+
+```{r setup, include=FALSE, echo=F}
+library(ggplot2)#plotting functions
+library(wesanderson)
+theme_set(theme_classic()) # a theme I like.
+theme_update(plot.title = element_text(hjust = 0.5), 
+             axis.text=element_text(size=15), 
+             text=element_text(size=20))
+```
+
+# Goals
+
+<br>
+  
+  <br>
+  
+1. Transforming data vs nonlinear models
+
+2. Fit nonlinear models to data 
+
+3. Assessing nonlinear model fits
+
+---
+# A polynomial curve
+
+.pull-left[
+<br>
+
+<br>
+
+$$Y = \beta_0  +\beta_1 x + \beta_2 x^2+ \beta_3 x^3$$
+]
+
+.pull-right[
+```{r, echo=F, fig.align="center", fig.asp=0.7}
+x <- seq(0, 10, length.out=100)
+y <- 1 + x + x^2 - 0.1*x^3
+data.new <- data.frame(x=x, y=y)
+
+ggplot(data.new, aes(x,y)) +
+  geom_line()
+```
+]
+
+<br>
+ 
+... but if we let $z_1 = x$,  $z_2 = x^2$,  $z_3 = x^3$ then
+
+$$Y = \beta_0  +\beta_1 z_1 + \beta_2 z_2 + \beta_3 z_3.$$
+
+--
+<br>
+
+So this is a linear model (it's linear in terms of the $\beta$'s).
+---
+# What is a nonlinearity?
+
+Many functions emerge from biological phenomenon that cannot be modeled as an additive function. Often these are the results of differential equation models
+
+Sometimes we can transform nonlinear data to be linear (e.g., log-transforms), but sometimes we cannot
+
+.pull-left[
+The logistic model:
+
+\begin{align*}
+\frac{dN}{dt} &= rN\left( 1-\frac{N}{K} \right) \\
+N(t) &= \frac{K e^{rt}}{K  -1 + e^{rt} }
+\end{align*}
+
+
+]
+.pull-right[
+```{r, echo=F, out.width="80%"}
+x <- seq(0, 10, length.out=100)
+K <- 100
+y <- K*exp(x)/(K+exp(x)-1)
+data.new <- data.frame(x=x, y=y)
+
+ggplot(data.new, aes(x,y)) +
+  geom_line(size=1.3) +xlab("Time") + ylab("Population size")
+
+```
+
+
+]
+
+.footnote[https://en.wikipedia.org/wiki/Logistic_function#In_ecology:_modeling_population_growth]
+
+---
+# How to handle nonlinearity
+
+1. **Transform** data to achieve linearity and normality then use `lm`
+
+2. Directly model nonlinearity using nonlinear regression (`nls` or `optim`)
+
+
+---
+class:inverse
+
+# Transforming data
+
+```{r, echo=F, out.width="45%", fig.align="center", fig.cap="image: amazon.com"}
+knitr::include_graphics("https://images-na.ssl-images-amazon.com/images/I/81NLWqmleoL._AC_SL1500_.jpg")
+```
+
+---
+# The Monet dataset
+
+```{r, echo=F}
+monet.dat       <- read.csv(file="../Data/monet.csv", header=TRUE)
+monet.dat$HOUSE <- as.factor(monet.dat$HOUSE)
+monet.dat$SIGNED <- as.factor(monet.dat$SIGNED)
+monet.dat <- subset(monet.dat, SIZE< 2000)
+```
+
+.pull-left[
+```{r, echo=F, out.width="85%", fig.align="right", fig.cap="Image from wikimedia.org"}
+knitr::include_graphics("https://upload.wikimedia.org/wikipedia/commons/a/a5/Claude_Monet%2C_Houses_of_Parliament%2C_London%2C_1900-1903%2C_1933.1164%2C_Art_Institute_of_Chicago.jpg")
+```
+]
+
+.pull-right[
+```{r, fig.asp=0.75, echo=F}
+ggplot(data=monet.dat) +
+  geom_point(aes(x=SIZE, y=PRICE, color=HOUSE), size=4, alpha=0.5) + 
+  scale_color_manual(values = wes_palette("GrandBudapest1"))
+```
+]
+
+
+---
+# Transforming data
+
+We can potentially log-transform the response variable, this will modify both the **mean** and the **variance** of the data. 
+
+```{r, fig.asp=1/1.62, echo=F, fig.align="center"}
+ggplot(data=monet.dat) +
+  geom_point(aes(x=SIZE, y=PRICE, color=HOUSE), size=4, alpha=0.5) + 
+  scale_color_manual(values = wes_palette("GrandBudapest1")) + 
+  scale_y_continuous(trans='log10')
+```
+
+Once transformed the conditions for linear regression *may* be met.
+
+---
+# Steps 
+
+1. Determine suitable transform to achieve normality and/or linearity
+
+2. Apply linear regression model
+
+3. Examine residuals
+
+4. Back-transform results (when needed)
+
+---
+# Common transforms
+
+- **Natural logarithm** typically used for strictly positive, continuous data or for count response variables. Data should exhibits increasing variance with the mean.
+$$Y^{\prime} = \ln(Y)$$
+
+- **Squareroot** typically used for count data. Data should exhibits increasing variance with the mean. Pretty similar to natural log, either can often be used.
+$$Y^{\prime} = \sqrt{Y + 1/2}$$
+
+- **Logit** used for proportional data. $$Y^{\prim    e} = \ln{\frac{p}{1-p}}$$
+
+
+---
+# Monet revisited
+
+```{r, fig.asp=1/1.62, echo=F, fig.align="center", warning=F, message=F}
+ggplot(data=monet.dat) +
+  geom_point(aes(x=SIZE, y=PRICE, color=HOUSE), size=4, alpha=0.5) + 
+  geom_smooth(aes(x=SIZE, y=PRICE, color=HOUSE), method="lm", se=F) +
+  scale_color_manual(values = wes_palette("GrandBudapest1")) + 
+  scale_y_continuous(trans='log10')
+```
+
+---
+# Doing it
+.pull-left[
+### Mathematics
+\begin{align*}
+\ln(Y) &= \beta_0 + \beta_1 X_1 + \varepsilon\\
+Y &= e^{\beta_0 + \beta_1 X_1 + \varepsilon}
+\end{align*}
+
+So now $Y=e^{\beta_0}$ when $X=0$. Thus, $Y\rightarrow 0$ as $\beta_0 \rightarrow \infty$.
+
+]
+.pull-right[
+### Code
+```{r, echo=F}
+```
+
+```{r, fig.asp=0.5, fig.align="right"}
+mod1 <- lm(log(PRICE) ~ HOUSE*SIZE, data=monet.dat)
+par(mfrow=c(1,2))
+plot(mod1, which=1)
+plot(mod1, which=2)
+```
+
+]
+---
+# `summary`
+
+```{r}
+summary(mod1)
+```
+
+---
+# Transforming back
+
+```{r, warning=F, message=F, fig.asp=1/1.62, fig.align="center", out.width="85%"}
+library(sjPlot)
+plot_model(mod1, type="pred", terms=c("SIZE", "HOUSE"), show.data=TRUE, colors=wes_palette("GrandBudapest1"), axis.lim=c(0, 50))
+```
+
+
