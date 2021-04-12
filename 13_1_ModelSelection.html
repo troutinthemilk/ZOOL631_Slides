@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Multimodel inference</title>
+    <meta charset="utf-8" />
+    <script src="13_1_ModelSelection_files/header-attrs-2.7/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Multimodel inference
+
+---
+
+
+
+
+
+
+#Goals 
+
+1. Determine how to decide between competing models
+
+  a. Using `\(R_{adj}^2\)`
+  
+  b. Using prediction
+  
+  c. Using information criterion
+
+2. Combining information and predictions from more than one model
+
+---
+# Why do biologists do model selection?
+
+* Understand which explanatory variables are important
+
+* Quantify the effects of explanatory variables on the respose
+
+* False belief that it is not legitimate to include ‘insignificant’ regression coefficients.
+
+* May increase predictive precision by dropping unimportant variables
+
+
+
+---
+# A cautionary example: Google Flu Trends
+
+&lt;img src="../Figures/NatureFlu.PNG" width="60%" style="display: block; margin: auto;" /&gt;
+
+
+.footnote[https://www.wired.com/2015/10/can-learn-epic-failure-google-flu-trends/]
+
+---
+# Why not include all predictors?
+
+Including all predictors is a good strategy when you have much more data than predictors.
+ - Rule of thumb: 20 observations per predictor in a regression
+
+&lt;br&gt; 
+
+However, it is a problematic strategy when predictors are correlated 
+  * Difficult to determine important effects
+  - Correlated predictors may lead to poor prediction
+
+or when data are limited
+  * Overfitting leads to poor prediction
+
+---
+# Example: Sleep in mammals
+
+Sleep is characterized by either slow wave (non-dreaming) or rapid eye movement (dreaming), with wide variability in the
+amount of both types of sleep.
+
+* Roe Deer sleep &lt; 3 hours/day
+* Little Brown bat sleeps close to 20 hours per day
+
+--
+
+Why? What is the purpose of sleep?
+
+* Memory consolidation
+* Energy conservation
+
+.footnote[Allison, Truett and Cicchetti, Domenic V. (1976), Sleep in Mammals: Ecological and Constitutional Correlates, Science, November 12, vol. 194]
+
+---
+# Variables
+
+* Lifespan (*years*)
+
+* Gestation (*days*)
+
+* log(Brain weight) (*g*)
+
+* log(Body Weight) (*kg*)
+
+* Predation Index (1-5; 1 = least likely to be preyed upon)
+
+* Exposure Index [1-5: 1 = least exposed (e.g., animal
+sleeps in a den)]
+
+* Danger Index (1:5, combines exposure and predation; 1=
+least danger from other animals)
+
+Any guesses which are most highly associated with total sleep?
+
+---
+# Correlations with total sleep
+
+
+
+
+```r
+cor.mat &lt;- cor(mammals[,-c(1,4,5)], use="pairwise.complete") #removing categorical variables and proprtion of time spent dreaming 
+
+print(round(sort(cor.mat[-3,3], decreasing=FALSE), 3))
+```
+
+```
+##  exposure gestation    danger life_span predation  brain_wt   body_wt 
+##    -0.642    -0.631    -0.588    -0.396    -0.396    -0.358    -0.307
+```
+
+&lt;img src="13_1_ModelSelection_files/figure-html/unnamed-chunk-4-1.png" width="100%" style="display: block; margin: auto;" /&gt;
+
+---
+# Model 1:  `Lifespan`
+
+OK, `life_span` is significant
+
+
+```
+## 
+## Call:
+## lm(formula = total_sleep ~ life_span, data = mammals)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -8.0556 -3.2608  0.3263  2.3158  9.9263 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 12.31165    0.88957  13.840  &lt; 2e-16 ***
+## life_span   -0.09742    0.03224  -3.021  0.00399 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.34 on 49 degrees of freedom
+##   (11 observations deleted due to missingness)
+## Multiple R-squared:  0.157,	Adjusted R-squared:  0.1398 
+## F-statistic: 9.127 on 1 and 49 DF,  p-value: 0.003995
+```
+
+
+
+---
+# Model 2: `LifeSpan + Gestation`
+
+**Oh, snap!**
+
+
+```
+## 
+## Call:
+## lm(formula = total_sleep ~ life_span + gestation, data = mammals)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -7.5776 -2.9190  0.2276  1.4076  7.6256 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 13.268771   0.792062  16.752  &lt; 2e-16 ***
+## life_span    0.001964   0.035799   0.055    0.956    
+## gestation   -0.020830   0.004783  -4.355 6.96e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 3.713 on 48 degrees of freedom
+##   (11 observations deleted due to missingness)
+## Multiple R-squared:  0.3958,	Adjusted R-squared:  0.3706 
+## F-statistic: 15.72 on 2 and 48 DF,  p-value: 5.613e-06
+```
+
+---
+# Is life span a useful predictor? 
+
+**The p-value**
+
+Model 1:
+
+
+```
+##             Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)  12.3117     0.8896   13.84 1.49e-18
+## life_span    -0.0974     0.0322   -3.02 3.99e-03
+```
+
+
+&lt;br&gt;
+
+Model 2:
+
+```
+##             Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 13.26877    0.79206 16.7522 1.10e-21
+## life_span    0.00196    0.03580  0.0549 9.56e-01
+## gestation   -0.02083    0.00478 -4.3547 6.96e-05
+```
+
+
+
+
+---
+# Collinearity
+
+
+```r
+library(car)
+mod2 &lt;- lm(total_sleep ~ life_span + gestation, data=mammals)
+vif(mod2)
+```
+
+```
+## life_span gestation 
+##  1.684552  1.684552
+```
+
+
+
+Even low collinearity in predictors can lead to unstable estimation!
+
+---
+# Using t-tests for model selection
+
+
+- p-values capture the ability to precisely estimate a predictor.
+  - A predictor can be useful even if it's uncertain.
+  - Uncertainty in estimation can arise from correlations with other predictors
+
+- p-values are inaccurate when comparing multiple models. 
+
+- Step-wise strategies are tempting, but have the above issues and more
+
+--
+
+![](https://media.giphy.com/media/l3V0cSOBfJvvNsSzu/giphy.gif)
+
+---
+class: center, middle, inverse
+background-image: url("https://ericjoyner.com/wp-content/uploads/2015/07/landing-party7.jpg")
+background-position: center
+
+# The criterion
+
+
+
+---
+# Warning!
+
+All the selection criterion we will discuss fail when a large number of comparisons are made. Instead we need to consider a small set of model candidates that should test alternative biological hypotheses.
+
+---
+# Coefficient of determination `\((R^2)\)`
+
+
+`\begin{align*}
+R^2 &amp; = 1 - \frac{\mathrm{SSR}}{\mathrm{SST}} \\
+\end{align*}`
+
+- Easy to interpret measure of fit
+  - Fit always increases when adding parameters
+
+- Can only be used to directly compare models with the same number of parameters
+
+--
+
+```r
+summary(mod1)$r.squared
+```
+
+```
+## [1] 0.1570247
+```
+
+```r
+summary(mod2)$r.squared
+```
+
+```
+## [1] 0.3957512
+```
+
+---
+# Trading-off model fit and complexity 
+
+Including lots of predictors increases the amount of variation you explain in &lt;span style="color:blue"&gt;your dataset&lt;/span&gt; , but does a poor job of explaining variation in a &lt;span style="color:red"&gt;new dataset&lt;/span&gt;.
+
+&lt;img src="https://miro.medium.com/max/620/1*feFntGUIiob7MwUX62jdCg.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+.footnote[https://medium.com/@prvnk10/bias-variance-tradeoff-ebf13adcea42]
+
+
+---
+# Adjusted `\(R^2\)`
+
+Asks: *what would the `\(R^2\)` value be if we averaged across many samples?*
+
+`\begin{align*}
+R^2 &amp; = 1 - \frac{\mathrm{SSR}}{\mathrm{SST}} \\
+R^2_{adj} &amp;= 1 - \frac{\mathrm{SSR}/(n-k-1)}{\mathrm{SST}/(n-1)}
+\end{align*}`
+
+n = sample size
+
+k = number of parameters
+
+* `\(R^2\)` always increases with the number of predictors
+
+* `\(R^2_{adj}\)` only increases when predictor improves fit more than expected by chance
+
+* `\(R^2_{adj} \leq R^2\)` 
+
+* `\(R^2_{adj}\)` can be directly compared across models
+
+???
+The adjusted `\(R^2\)` increases when adding a variable if the t-score for that variable is &gt; 1.
+
+---
+# `\(R_{\mathrm{adj}}^2\)` example
+
+```r
+mod1 &lt;- lm(total_sleep ~ life_span, data=mammals)
+mod2 &lt;- lm(total_sleep ~ life_span + gestation, data=mammals)
+mod3 &lt;- lm(total_sleep ~ gestation, data=mammals)
+
+summary(mod1)$adj.r.squared
+```
+
+```
+## [1] 0.1398212
+```
+
+```r
+summary(mod2)$adj.r.squared
+```
+
+```
+## [1] 0.3705742
+```
+
+```r
+summary(mod3)$adj.r.squared
+```
+
+```
+## [1] 0.3870069
+```
+
+Suggests that model 3 better explains the data.
+
+**Potential issues**: `\(R^2_{adj}\)` has high variability, so results are dependent on the data.
+
+---
+
+# Assessing prediction
+## A machine learning approach
+
+1. Break up data into **training** and **test** datasets
+  * typically 2/3 and 1/3 of dataset
+2. Fit the model to the training data
+3. Use the fits to predict the test data, calculate the root mean squared-error
+
+???
+go over formual for rmse
+---
+#Example
+
+
+```r
+test.dat  &lt;- mammals[1:20,]
+train.dat &lt;- mammals[21:62,]
+
+mod1.train &lt;- lm(total_sleep ~ life_span, data=train.dat)
+mod2.train &lt;- lm(total_sleep ~ life_span + gestation, data=train.dat)
+mod3.train &lt;- lm(total_sleep ~ gestation, data=train.dat)
+```
+
+
+```r
+sqrt(mean((test.dat$total_sleep - predict(mod1.train, newdata=test.dat))^2, na.rm=TRUE))
+```
+
+```
+## [1] 4.013483
+```
+
+```r
+sqrt(mean((test.dat$total_sleep - predict(mod2.train, newdata=test.dat))^2, na.rm=TRUE))
+```
+
+```
+## [1] 4.695181
+```
+
+```r
+sqrt(mean((test.dat$total_sleep - predict(mod3.train, newdata=test.dat))^2, na.rm=TRUE))
+```
+
+```
+## [1] 4.178568
+```
+
+---
+#Example II 
+
+
+```r
+train.dat &lt;- mammals[1:40,]
+test.dat  &lt;- mammals[41:62,]
+
+mod1.train &lt;- lm(total_sleep ~ life_span, data=train.dat)
+mod2.train &lt;- lm(total_sleep ~ life_span + gestation, data=train.dat)
+mod3.train &lt;- lm(total_sleep ~ gestation, data=train.dat)
+```
+
+
+```r
+sqrt(mean((test.dat$total_sleep - predict(mod1.train, newdata=test.dat))^2, na.rm=TRUE))
+```
+
+```
+## [1] 4.285408
+```
+
+```r
+sqrt(mean((test.dat$total_sleep - predict(mod2.train, newdata=test.dat))^2, na.rm=TRUE))
+```
+
+```
+## [1] 3.785814
+```
+
+```r
+sqrt(mean((test.dat$total_sleep - predict(mod3.train, newdata=test.dat))^2, na.rm=TRUE))
+```
+
+```
+## [1] 3.780239
+```
+
+
+---
+# Conclusions
+
+Depending on the partition we get a different best model!
+
+For small datasets like this, our conclusion will likely change with a different partition of the test and training data.
+
+&lt;br&gt;
+--
+Since science tells us that prediction is a valuable goal, *how can we make this strategy more robust?*
+
+---
+
+# Leave-one-out cross-validation
+
+This is the recipe for leave-one-out cross validation:
+
+1. Fit all the data except for one datapoint, `\(Y_i\)`
+
+2. Predict the held-out datapoint, `\(\hat{Y}_i\)`
+
+3. Calculate the error between the predicted and held-out value, `\((\hat{Y}_i- Y_i)^2\)`.
+
+4. Go back and do it for the next datapoint
+
+5. Average all the error terms
+
+---
+# Implementing in R
+
+
+```r
+library(caret) #short for Classification And REgression Training
+
+sleep.control &lt;- trainControl(method = "LOOCV") #tell the package we want to do Leave One Out Cross Validation
+
+mod1.xv &lt;- train(total_sleep ~ life_span, data=mammals, method = "lm", na.action=na.omit, trControl=sleep.control)
+mod2.xv &lt;- train(total_sleep ~ life_span + gestation, data=mammals, method = "lm", na.action=na.omit, trControl= sleep.control)
+mod3.xv &lt;- train(total_sleep ~ gestation, data=mammals, method = "lm", na.action=na.omit, trControl= sleep.control)
+```
+
+---
+# LOOCV results
+
+
+```r
+print(mod1.xv$results)
+```
+
+```
+##   intercept     RMSE   Rsquared     MAE
+## 1      TRUE 4.474978 0.09106003 3.57393
+```
+
+```r
+print(mod2.xv$results)
+```
+
+```
+##   intercept     RMSE Rsquared     MAE
+## 1      TRUE 3.805805 0.334064 2.97627
+```
+
+```r
+print(mod3.xv$results)
+```
+
+```
+##   intercept     RMSE  Rsquared      MAE
+## 1      TRUE 3.692534 0.3545248 2.896535
+```
+
+Here we predict model 3 is best in the set.
+
+---
+# Akaike's Information Criterion
+
+**Hirotugu Akaike** estimated the bias in the estimate of the likelihood, finding that bias increased with the number of model parameters.
+
+&lt;img src="https://onlinelibrary.wiley.com/cms/asset/4b1fcb4c-6d4f-43f9-91a1-fef39470fae4/wics1460-toc-0001-m.jpg" width="40%" style="display: block; margin: auto;" /&gt;
+
+ 
+.footnote[Cavanauh, J.E. and Neath, A.A. (2019) The Akaike information criterion: Background, derivation, properties, application, interpretation, and refinements. Wiley Interdisciplinary Reviews.]
+
+---
+# The AIC 
+
+AIC = `\(-2 \ell(\hat{\theta}; Y) + 2k\)`
+
+AICc = `\(-2 \ell(\hat{\theta}; Y) + 2k + \frac{2k^2 + 2k}{n - k - 1}\)`
+
+These criterion tradeoff the model **fit** (the likelihood of the model `\(\ell(\hat{\theta}; Y)\)`) and the model **complexity** (the number of parameters, `\(k\)`).
+
+
+* Fit all models, the lowest AIC(c) value is the best model.
+
+* Larger differences in AIC(c), called `\(\Delta\)`AIC(c), are stronger support for the best model.
+
+* Rules of thumb for `\(\Delta\)` values of suboptimal model
+  * 0- 7: plausible
+  * 7-14: equivocal
+  * `\(&gt;\)` 14: impossible
+  
+.footnote[Burnham, Anderson, Huyvaert (2011) Behavioral Ecology and Sociobiology]
+---
+
+# Example
+
+
+```r
+library(MuMIn)
+model.sel(list(mod1, mod2, mod3), rank=AICc)
+```
+
+```
+## Model selection table 
+##   (Int)   lif_spn      gst             family df   logLik  AICc delta weight
+## 2 13.27  0.001964 -0.02083 gaussian(identity)  4 -137.717 284.3  0.00  0.997
+## 3 13.31           -0.02075 gaussian(identity)  3 -145.061 296.6 12.30  0.002
+## 1 12.31 -0.097420          gaussian(identity)  3 -146.207 298.9 14.62  0.001
+## Models ranked by AICc(x)
+```
+
+AICc selects model 2, `\(\Delta\)`AICc = 12.3. Here `life_span` is important!
+
+---
+# A larger set 
+
+```r
+mod1 &lt;- lm(total_sleep ~ log(brain_wt), data=mammals)
+mod2 &lt;- lm(total_sleep ~ danger + log(brain_wt), data=mammals)
+mod3 &lt;- lm(total_sleep ~ life_span, data=mammals)
+mod4 &lt;- lm(total_sleep ~ log(brain_wt) + danger + log(body_wt) + life_span, data=mammals)
+mod5 &lt;- lm(total_sleep ~ log(brain_wt) + danger + log(body_wt) + life_span + exposure, data=mammals)
+
+model.sel(list(mod1, mod2, mod3, mod4, mod5), rank=AICc)
+```
+
+```
+## Model selection table 
+##   (Int) log(brn_wt)    dng   lif_spn log(bdy_wt) exp             family df
+## 4 18.07     -0.9945 -1.735 -0.006269     0.09049     gaussian(identity)  6
+## 5 18.10     -1.0510 -2.098 -0.007516     0.02397 0.5 gaussian(identity)  7
+## 3 12.31                    -0.097420                 gaussian(identity)  3
+## 2 17.16     -0.8496 -1.604                           gaussian(identity)  4
+## 1 13.72     -1.0570                                  gaussian(identity)  3
+##     logLik  AICc delta weight
+## 4 -124.473 262.9  0.00  0.717
+## 5 -124.052 264.7  1.86  0.283
+## 3 -146.207 298.9 36.07  0.000
+## 2 -147.917 304.6 41.73  0.000
+## 1 -159.355 325.2 62.30  0.000
+## Models ranked by AICc(x)
+```
+
+
+---
+# AIC weights
+
+Rather than choose a single best model, another approach is to average predictions among “competitive” models or models with roughly equal support.
+
+1. Compute model weights, using the AIC values, reflecting
+relative plausibility of the different models
+`\begin{align*}
+W_i = \displaystyle\frac{exp^{-\Delta\mathrm{AIC_i}}}{\sum_j exp^{-\Delta\mathrm{AIC_j}}}
+\end{align*}`
+2. Calculate weighted predictions and SEs that reflect model
+uncertainty and sampling uncertainty
+
+---
+# Averaged predictions
+
+
+---
+# Caution with averaging
+
+Comparing **predictions** from multiple models is often valuable
+
+However, model averaged **coefficients** can often be misleading
+---
+# Model averaging
+
+Use AIC weights to calculate a weighted average estimate:
+
+
+`\begin{align*}
+\hat{\theta}_{avg} = \sum W_i \theta_i
+\end{align*}`
+
+Calculate a standard error that accounts for model uncertainty and sampling uncertainty:
+
+`\begin{align*}
+\widehat{SE}_{avg} = \displaystyle \sum_i W_i \sqrt{SE_i^2 + (\hat{\theta}_{avg} - \hat{\theta}_i)^2}
+\end{align*}`
+
+Typically, 95% CIs are formed using `\(\hat{\theta}_{avg} \pm 1.96 \cdot \widehat{SE}_{avg}\)`.
+
+---
+#Example
+
+
+```r
+AIC.list &lt;- model.sel(list(mod1, mod2, mod3, mod4, mod5, mod6), rank=AIC)
+
+coef(model.avg(AIC.list)) #model averaged estimates
+
+sqrt(diag(vcov(model.avg(AIC.list)))) #model averaged standard errors
+
+#can also print summary(model.avg(...)) but too long for here.
+```
+
+---
+
+# The model selection process
+
+###  
+&lt;br&gt;
+
+1. Define a set of *a-priori* models
+
+2. Fit &amp; calculate AIC values/weights
+
+3. Determine whether to explore any *post-hoc* models
+
+--- 
+Other procedures sometimes used for exploratory analyses
+
+- Stepwise selection: overfits models
+
+- All subsets regression: same
+
+---
+# Resources
+
+* Ken Burham &amp; David Anderson, Model Selection and Multimodel Inference. A classic book
+* Mark Brewer (Model selection and the cult of AIC) [https://www.youtube.com/watch?v=lEDpZmq5rBw]
+* R package `caret` for cross-validation (**C**lassification **A**nd **RE**gression **T**raining)
+* R package `MuMIn` for model averaging
+* Some issues with using model averaging for explanatory modeling are discussed in Cade, B. S. (2015). Model averaging and muddled multimodel inferences. Ecology, 96(9), 2370-2382.
+* Strengths and weaknesses of `\(R^2_{adj}\)`: https://davegiles.blogspot.com/2013/08/unbiased-model-selection-using-adjusted.html
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
