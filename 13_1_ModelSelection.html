@@ -43,7 +43,6 @@ class: center, middle, inverse, title-slide
 * May increase predictive precision by dropping unimportant variables
 
 
-
 ---
 # A cautionary example: Google Flu Trends
 
@@ -119,8 +118,8 @@ print(round(sort(cor.mat[-3,3], decreasing=FALSE), 3))
 ```
 
 ```
-##  exposure gestation    danger life_span predation  brain_wt   body_wt 
-##    -0.642    -0.631    -0.588    -0.396    -0.396    -0.358    -0.307
+##  exposure    danger gestation predation life_span  brain_wt   body_wt 
+##    -0.668    -0.636    -0.629    -0.460    -0.396    -0.368    -0.317
 ```
 
 &lt;img src="13_1_ModelSelection_files/figure-html/unnamed-chunk-4-1.png" width="100%" style="display: block; margin: auto;" /&gt;
@@ -260,7 +259,7 @@ background-position: center
 ---
 # Warning!
 
-All the selection criterion we will discuss fail when a large number of comparisons are made. Instead we need to consider a small set of model candidates that should test alternative biological hypotheses.
+All the selection criterion we will discuss fail when a large number of comparisons are made. Instead we need to consider a small set of  alternative biological hypotheses.
 
 ---
 # Coefficient of determination `\((R^2)\)`
@@ -356,7 +355,7 @@ summary(mod3)$adj.r.squared
 ```
 
 ```
-## [1] 0.3870069
+## [1] 0.3833809
 ```
 
 Suggests that model 3 better explains the data.
@@ -410,7 +409,7 @@ sqrt(mean((test.dat$total_sleep - predict(mod3.train, newdata=test.dat))^2, na.r
 ```
 
 ```
-## [1] 4.178568
+## [1] 4.392659
 ```
 
 ---
@@ -448,7 +447,7 @@ sqrt(mean((test.dat$total_sleep - predict(mod3.train, newdata=test.dat))^2, na.r
 ```
 
 ```
-## [1] 3.780239
+## [1] 3.781075
 ```
 
 
@@ -521,7 +520,7 @@ print(mod3.xv$results)
 
 ```
 ##   intercept     RMSE  Rsquared      MAE
-## 1      TRUE 3.692534 0.3545248 2.896535
+## 1      TRUE 3.752187 0.3492692 2.932343
 ```
 
 Here we predict model 3 is best in the set.
@@ -535,6 +534,9 @@ Here we predict model 3 is best in the set.
 
  
 .footnote[Cavanauh, J.E. and Neath, A.A. (2019) The Akaike information criterion: Background, derivation, properties, application, interpretation, and refinements. Wiley Interdisciplinary Reviews.]
+
+---
+# The Kullback-Leibler divergence
 
 ---
 # The AIC 
@@ -569,13 +571,13 @@ model.sel(list(mod1, mod2, mod3), rank=AICc)
 ```
 ## Model selection table 
 ##   (Int)   lif_spn      gst             family df   logLik  AICc delta weight
-## 2 13.27  0.001964 -0.02083 gaussian(identity)  4 -137.717 284.3  0.00  0.997
-## 3 13.31           -0.02075 gaussian(identity)  3 -145.061 296.6 12.30  0.002
-## 1 12.31 -0.097420          gaussian(identity)  3 -146.207 298.9 14.62  0.001
+## 3 13.28           -0.02066 gaussian(identity)  3 -137.719 281.9  0.00  0.764
+## 2 13.27  0.001964 -0.02083 gaussian(identity)  4 -137.717 284.3  2.36  0.235
+## 1 12.31 -0.097420          gaussian(identity)  3 -146.207 298.9 16.98  0.000
 ## Models ranked by AICc(x)
 ```
 
-AICc selects model 2, `\(\Delta\)`AICc = 12.3. Here `life_span` is important!
+AICc selects model 3, `\(\Delta\)`AICc = 2.36.
 
 ---
 # A larger set 
@@ -593,19 +595,53 @@ model.sel(list(mod1, mod2, mod3, mod4, mod5), rank=AICc)
 ```
 ## Model selection table 
 ##   (Int) log(brn_wt)    dng   lif_spn log(bdy_wt) exp             family df
+## 2 17.79     -0.9224 -1.715                           gaussian(identity)  4
 ## 4 18.07     -0.9945 -1.735 -0.006269     0.09049     gaussian(identity)  6
 ## 5 18.10     -1.0510 -2.098 -0.007516     0.02397 0.5 gaussian(identity)  7
+## 1 13.98     -1.1410                                  gaussian(identity)  3
 ## 3 12.31                    -0.097420                 gaussian(identity)  3
-## 2 17.16     -0.8496 -1.604                           gaussian(identity)  4
-## 1 13.72     -1.0570                                  gaussian(identity)  3
 ##     logLik  AICc delta weight
-## 4 -124.473 262.9  0.00  0.717
-## 5 -124.052 264.7  1.86  0.283
-## 3 -146.207 298.9 36.07  0.000
-## 2 -147.917 304.6 41.73  0.000
-## 1 -159.355 325.2 62.30  0.000
+## 2 -124.524 257.9  0.00  0.894
+## 4 -124.473 262.9  4.94  0.076
+## 5 -124.052 264.7  6.79  0.030
+## 1 -138.371 283.3 25.34  0.000
+## 3 -146.207 298.9 41.01  0.000
 ## Models ranked by AICc(x)
 ```
+
+---
+# Case study: puma declines in the GYE
+
+&lt;img src="../Figures/Elbroch_Puma.jpg" width="50%" style="display: block; margin: auto;" /&gt;
+
+---
+# Potential causes
+
+1. Decline of prey (Elk)
+
+2. Reintroduction of wolves
+
+3. Neither
+
+
+---
+# 
+
+.pull-left[
+&lt;br&gt;
+
+&lt;img src="../Figures/Elbroch_table.png" width="773" style="display: block; margin: auto;" /&gt;
+]
+.pull-right[
+&lt;img src="../Figures/Elbroch_decline.png" width="509" style="display: block; margin: auto;" /&gt;
+]
+
+---
+class: center, middle, inverse
+background-image: url("https://ericjoyner.com/wp-content/uploads/2020/04/Deathrace-2050.jpg")
+background-position: center
+
+# Model averaging
 
 
 ---
@@ -624,6 +660,11 @@ uncertainty and sampling uncertainty
 ---
 # Averaged predictions
 
+The prediction of observation `\(i\)` from model 1: `\(\hat{Y}_{i,1}\)` 
+
+Then the prediction averaged over all models is `\(\hat{Y}_{i} = \displaystyle\sum_j w_j\hat{Y}_{i,j}\)`
+
+&lt;img src="https://i.guim.co.uk/img/static/sys-images/Guardian/Pix/pictures/2013/10/1/1380599335494/ProjvsObs450.jpg?width=445&amp;quality=45&amp;auto=format&amp;fit=max&amp;dpr=2&amp;s=9dd0d0fb23f916286d8563326b2fd1d6" style="display: block; margin: auto;" /&gt;
 
 ---
 # Caution with averaging
@@ -631,6 +672,8 @@ uncertainty and sampling uncertainty
 Comparing **predictions** from multiple models is often valuable
 
 However, model averaged **coefficients** can often be misleading
+
+.footnote[Cade, B. S. (2015). Model averaging and muddled multimodel inferences. Ecology, 96(9), 2370-2382.]
 ---
 # Model averaging
 
@@ -654,12 +697,26 @@ Typically, 95% CIs are formed using `\(\hat{\theta}_{avg} \pm 1.96 \cdot \wideha
 
 
 ```r
-AIC.list &lt;- model.sel(list(mod1, mod2, mod3, mod4, mod5, mod6), rank=AIC)
+AIC.list &lt;- model.sel(list(mod1, mod2, mod3), rank=AICc)
 
 coef(model.avg(AIC.list)) #model averaged estimates
+```
 
+```
+##   (Intercept)        danger log(brain_wt)     life_span 
+##   17.78559538   -1.71479320   -0.92243120   -0.09741534
+```
+
+```r
 sqrt(diag(vcov(model.avg(AIC.list)))) #model averaged standard errors
+```
 
+```
+##   (Intercept)        danger log(brain_wt)     life_span 
+##    0.91661009    0.29144455    0.16460191    0.03224428
+```
+
+```r
 #can also print summary(model.avg(...)) but too long for here.
 ```
 
@@ -670,16 +727,19 @@ sqrt(diag(vcov(model.avg(AIC.list)))) #model averaged standard errors
 ###  
 &lt;br&gt;
 
-1. Define a set of *a-priori* models
+1. Define a limited set of *a-priori* models
 
-2. Fit &amp; calculate AIC values/weights
+2. Fit and calculate your criterion to rank models (e.g., AIC values/weights, RMSE, etc.)
 
-3. Determine whether to explore any *post-hoc* models
+3. Determine whether to explore any *post-hoc* models based on your initial results
 
---- 
+----
+
+&lt;br&gt;
+
 Other procedures sometimes used for exploratory analyses
 
-- Stepwise selection: overfits models
+- Stepwise selection: tends to overfit models
 
 - All subsets regression: same
 
