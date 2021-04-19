@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Multiple comparisons with ANOVA and posthoc testing</title>
+    <meta charset="utf-8" />
+    <script src="14_1_ANOVA_files/header-attrs-2.7/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Multiple comparisons with ANOVA and posthoc testing
+
+---
+
+
+
+
+
+
+
+
+# Comparing the means of two groups
+
+&lt;img src="14_1_ANOVA_files/figure-html/unnamed-chunk-1-1.png" width="70%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+## T-test 
+
+What do we conclude about the glass shape?
+
+```r
+summary(lm(drinkingMinutes ~ glassShape, data=beer.shape))
+```
+
+```
+## 
+## Call:
+## lm(formula = drinkingMinutes ~ glassShape, data = beer.shape)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -7.9530 -3.9130 -0.1333  3.0870  8.6270 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)           7.593      1.563   4.858 0.000147 ***
+## glassShapestraight    7.320      2.154   3.398 0.003425 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.689 on 17 degrees of freedom
+## Multiple R-squared:  0.4044,	Adjusted R-squared:  0.3694 
+## F-statistic: 11.54 on 1 and 17 DF,  p-value: 0.003425
+```
+
+---
+
+## What about these?
+
+
+&lt;img src="https://www.homestratosphere.com/wp-content/uploads/2018/02/types-of-beer-glasses.jpg" width="60%" style="display: block; margin: auto;" /&gt;
+
+.footnote[https://www.homestratosphere.com/types-of-beer-glasses/]
+---
+
+## How do we determine whether groups are the same?
+
+- Do every pairwise comparison.
+--
+
+- Be cleverer. 
+
+
+&lt;img src="http://www.economics.soton.ac.uk/staff/aldrich/fisherguide/Doc1_files/image001.gif" width="30%" style="display: block; margin: auto;" /&gt;
+
+.footnote[http://www.economics.soton.ac.uk/staff/aldrich/fisherguide]
+---
+
+# Example 
+
+Cuckoo birds lay their eggs in the nests of other birds. When the cuckoo baby hatches, it kicks out all the original eggs/babies. If the cuckoo is lucky, the mother will raise the cuckoo as if it w
+ere her own
+
+**Do cuckoo bird eggs found in nests of different species differ in size?**
+
+.footnote[https://opinionator.blogs.nytimes.com/2010/06/01/cuckoo-cuckoo]
+
+--
+
+
+&lt;br&gt;
+
+&lt;br&gt;
+
+In other words, does the typical egg size vary by the type of nest?
+
+---
+## The eye test
+
+&lt;img src="14_1_ANOVA_files/figure-html/unnamed-chunk-5-1.png" width="60%" style="display: block; margin: auto;" /&gt;
+ 
+---
+class: center, middle
+background-image: url("https://ericjoyner.com/wp-content/uploads/2015/12/The-Invasion.jpg")
+background-position: center
+
+
+# One-way Analysis of Variance (ANOVA)
+
+---
+
+## Intuition
+
+If we remove a group from the population, does the overall variation in the data change?
+
+
+&lt;img src="14_1_ANOVA_files/figure-html/unnamed-chunk-6-1.png" width="60%" style="display: block; margin: auto;" /&gt;
+
+--
+
+Removing pipit's won't matter but Wren might...
+
+---
+
+## The ANOVA model:
+
+`\(Y_1 \sim Norm(\mu_1,\sigma^2)\)`
+
+`\(Y_2 \sim Norm(\mu_2,\sigma^2)\)`
+
+`\(Y_3 \sim Norm(\mu_3,\sigma^2)\)`
+
+`\(Y_4 \sim Norm(\mu_4,\sigma^2)\)`
+
+
+Is `\(\mu_1=\mu_2=\mu_3=\mu_4\)`?
+
+&lt;br&gt;
+
+&lt;br&gt;
+
+**key assumption**: same variance `\(\sigma^2\)` for all groups!
+
+---
+
+## Sums of squares
+
+Variation between groups `\((SS_\mathrm{groups})\)`: `\(\displaystyle \sum_j^G n_j (\bar{Y}_j-\bar{Y})^2\)`. 
+
+*distance from group mean to grand mean*
+
+`\(+\)` Variation within groups  `\((SS_\mathrm{error})\)`: `\(\displaystyle \sum_j^G \sum_i^{n_i} (Y_{i,j}-\bar{Y}_j)^2\)`. 
+
+*distance from each observation to the group mean*
+
+***
+
+= Total variabilty : `\(\sum(Y-\bar{Y})^2\)`
+
+&lt;br&gt;
+
+&lt;br&gt;
+
+If group means are all the same then we expect that the **variation between groups is equal to the variation within groups**.
+
+---
+## The F-test
+
+`\(\mathbf{H_0}\)`: No differences among groups. 
+
+
+`\(F=\frac{SS_\mathrm{groups}/df_{groups}}{SS_\mathrm{error}/df_{error}}\)`
+
+![](14_1_ANOVA_files/figure-html/unnamed-chunk-7-1.png)&lt;!-- --&gt;
+           
+Now calculate the p-value.
+
+---
+## Implementing ANOVA in R
+
+
+```r
+cuckoo.lm &lt;- lm(egg_length ~ host_species, cuckoo.dat)
+aov(cuckoo.lm)
+```
+
+```
+## Call:
+##    aov(formula = cuckoo.lm)
+## 
+## Terms:
+##                 host_species Residuals
+## Sum of Squares      42.93965  94.24835
+## Deg. of Freedom            5       114
+## 
+## Residual standard error: 0.9092524
+## Estimated effects may be unbalanced
+```
+
+Cool, there is a difference...
+
+---
+
+## Diagnostic plots
+
+
+```r
+par(mfrow=c(1,2)) #panel plot command in base R
+plot(cuckoo.lm, which=1) #residuals vs fitted
+plot(cuckoo.lm, which=2) #qqplot
+```
+
+&lt;img src="14_1_ANOVA_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## ANOVA types
+
+There are three different types of ANOVA when using **multiple** predictors. The command `drop1` can be used to perform a type II ANOVA. This is appropriate when the data are **unbalanced**.
+
+For **balanced** data with **multiple** predictors the `aov` command performs a type I ANOVA where order of entry in your predictors affects your results!
+
+&lt;br&gt;
+
+These tests are usually less appropriate than the t-tests from the summary function, especially for unbalanced designs.
+
+
+---
+class: center, middle, inverse
+background-image: url("https://ericjoyner.com/wp-content/uploads/2018/01/Autumn-Leaves.jpg")
+background-position: center
+
+# Unplanned comparisons
+
+---
+## We detected a difference, now what?
+
+&lt;br&gt;
+
+If your question is whether all means are **identical** then you are done.
+
+*example:* Can I pool juvenile, subadult, and adult bears for further analyses?
+
+&lt;br&gt; 
+
+If you are interested in which of the groups **differs from the others** then you can do a post test. 
+
+*example:* Which storage treatment affects measurements of isotope measurements of lipids in loggerhead eggs? 
+
+---
+## Planned versus unplanned comparisons
+
+**Planned** comparisions are made on variables that were identified as important prior to collecting data.
+
+&lt;br&gt;
+
+**Unplanned** comparisions are made on variables that were identified as important prior to collecting data. These are a form of *data dredging*.
+
+---
+## Post tests
+
+Post (aka post-hoc) tests attempt to control for the fact that you are making **lots of comparisons**. 
+
+The Tukey-test uses the t-statistic (mean/SE) but the p-value controls for the fact that you are making `\({n}\choose{2}\)` comparisons. It controls for 5% false positives for all tests, instead of per-test.
+
+* good wikipedia article: https://en.wikipedia.org/wiki/Tukey%27s_range_test
+
+---
+## Tukey's Honest Significant Difference
+
+
+```r
+TukeyHSD(aov(egg_length ~ host_species, cuckoo.dat))
+```
+
+```
+##   Tukey multiple comparisons of means
+##     95% family-wise confidence level
+## 
+## Fit: aov(formula = egg_length ~ host_species, data = cuckoo.dat)
+## 
+## $host_species
+##                                   diff          lwr         upr     p adj
+## Meadow Pipit-Hedge Sparrow -0.82253968 -1.629133605 -0.01594576 0.0428621
+## Pied Wagtail-Hedge Sparrow -0.21809524 -1.197559436  0.76136896 0.9872190
+## Robin-Hedge Sparrow        -0.54642857 -1.511003196  0.41814605 0.5726153
+## Tree Pipit-Hedge Sparrow   -0.03142857 -1.010892769  0.94803563 0.9999990
+## Wren-Hedge Sparrow         -1.99142857 -2.970892769 -1.01196437 0.0000006
+## Pied Wagtail-Meadow Pipit   0.60444444 -0.181375330  1.39026422 0.2324603
+## Robin-Meadow Pipit          0.27611111 -0.491069969  1.04329219 0.9021876
+## Tree Pipit-Meadow Pipit     0.79111111  0.005291337  1.57693089 0.0474619
+## Wren-Meadow Pipit          -1.16888889 -1.954708663 -0.38306911 0.0004861
+## Robin-Pied Wagtail         -0.32833333 -1.275604766  0.61893810 0.9155004
+## Tree Pipit-Pied Wagtail     0.18666667 -0.775762072  1.14909541 0.9932186
+## Wren-Pied Wagtail          -1.77333333 -2.735762072 -0.81090459 0.0000070
+## Tree Pipit-Robin            0.51500000 -0.432271433  1.46227143 0.6159630
+## Wren-Robin                 -1.44500000 -2.392271433 -0.49772857 0.0003183
+## Wren-Tree Pipit            -1.96000000 -2.922428738 -0.99757126 0.0000006
+```
+
+---
+class:inverse
+
+# Summary
+
+- Can ANOVA be significant when pairwise t-tests are not?
+  - Yes!
+  
+- Are post tests results valid if ANOVA p-value &gt; 0.05?
+  - Yes!
+- Can post test results be significant when ANOVA is not? 
+  - Yes!
+  - They are more powerful than ANOVA.
+
+- When is ANOVA useful?
+  - When your question is whether the means are all identical.
+
+---
+class: center, middle
+background-image: url("https://ericjoyner.com/wp-content/uploads/2015/07/Lunchtime.jpg")
+background-position: center
+
+# Analysis of Covariance (ANCOVA)
+
+---
+
+## ANCOVA is just a fancy name for 
+
+... a model with both a categorical and numerical predictor variable. 
+
+`\(\mathrm{PRICE} = \beta_0 + \beta_1*X_\mathrm{WIDTH} + \beta_3*X_\mathrm{HOUSE_2} + \beta_4*X_\mathrm{HOUSE_3} + \epsilon\)`
+
+There is a single slope corresponding to the effect of WIDTH, and each HOUSE gets its own intercept.
+
+House 1: `\(\mathrm{PRICE} = \beta_0 + \beta_1*X_\mathrm{WIDTH}\)`
+
+House 2: `\(\mathrm{PRICE} = \beta_0 + \beta_2 + \beta_1*X_\mathrm{WIDTH}\)`
+
+House 3: `\(\mathrm{PRICE} = \beta_0 + \beta_3 + \beta_1*X_\mathrm{WIDTH}\)`
+
+---
+## ANCOVA
+
+
+```r
+library(sjPlot)
+monet.dat &lt;- read.csv(file="../Data/monet.csv")
+lPRICE &lt;- log(monet.dat$PRICE)
+monet.mod &lt;- lm(log(PRICE) ~ SIZE + HOUSE, data=monet.dat)
+
+plot_model(monet.mod, type="pred", terms=c("SIZE", "HOUSE"), transform="NULL")
+```
+
+```
+## Model has log-transformed response. Back-transforming predictions to original response scale. Standard errors are still on the log-scale.
+```
+
+![](14_1_ANOVA_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+
+---
+
+## Conduct F-tests
+
+
+```r
+aov(monet.mod) #type I anova
+```
+
+```
+## Call:
+##    aov(formula = monet.mod)
+## 
+## Terms:
+##                     SIZE    HOUSE Residuals
+## Sum of Squares  149.6679  14.6666  617.7918
+## Deg. of Freedom        1        1       427
+## 
+## Residual standard error: 1.202838
+## Estimated effects may be unbalanced
+```
+
+
+```r
+drop1(monet.mod, test="F") # type II
+```
+
+```
+## Single term deletions
+## 
+## Model:
+## log(PRICE) ~ SIZE + HOUSE
+##        Df Sum of Sq    RSS    AIC F value    Pr(&gt;F)    
+## &lt;none&gt;              617.79 161.82                      
+## SIZE    1   136.014 753.81 245.38  94.009 &lt; 2.2e-16 ***
+## HOUSE   1    14.667 632.46 169.91  10.137  0.001559 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+class: inverse
+
+# Summary
+
+- ANOVA is for regressions with purely categorical predictors
+
+- F-tests can be used to determine whether removing a predictor signigcanty changes the residual sum of squares.
+
+- While useful in some contexts, often t-tests or posthoc tests will be more powerful and informative.
+
+- ANOVA is sensitive to assumptions (normality, equal variance among groups) and different types should be used dependending on the design (balanced or unbalanced)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
