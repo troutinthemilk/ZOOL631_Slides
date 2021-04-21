@@ -354,7 +354,7 @@ library(sjPlot)
 ```
 
 ```
-## Install package "strengejacke" from GitHub (`devtools::install_github("strengejacke/strengejacke")`) to load all sj-packages at once!
+## #refugeeswelcome
 ```
 
 ```r
@@ -377,20 +377,16 @@ plot_model(monet.mod, type="pred", terms=c("SIZE", "HOUSE"), transform="NULL")
 
 
 ```r
-aov(monet.mod) #type I anova
+summary(aov(monet.mod)) #type I anova
 ```
 
 ```
-## Call:
-##    aov(formula = monet.mod)
-## 
-## Terms:
-##                     SIZE    HOUSE Residuals
-## Sum of Squares  149.6679  14.6666  617.7918
-## Deg. of Freedom        1        1       427
-## 
-## Residual standard error: 1.202838
-## Estimated effects may be unbalanced
+##              Df Sum Sq Mean Sq F value  Pr(&gt;F)    
+## SIZE          1  149.7  149.67  103.45 &lt; 2e-16 ***
+## HOUSE         1   14.7   14.67   10.14 0.00156 ** 
+## Residuals   427  617.8    1.45                    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 
@@ -441,7 +437,7 @@ Type I ANOVA removes terms sequentially (`aov`, `anova`). Means that order of pr
 
 Type II ANOVA removes a single term at a time (`drop1` or `Anova` in `car` package). Works when data are unbalanced.
 
-Type III ANOVA only tests main effects (not interactions). Appropriate when there is an interaction in teh model (`Anova` in `car` package)
+Type III ANOVA only tests main effects (not interactions). Appropriate when there is an interaction in the model (`Anova` in `car` package)
 
 
 .footnote[https://mcfromnz.wordpress.com/2011/03/02/anova-type-iiiiii-ss-explained/]
