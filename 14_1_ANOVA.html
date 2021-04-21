@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Multiple comparisons with ANOVA and posthoc testing</title>
+    <title>ANOVA and posthoc testing</title>
     <meta charset="utf-8" />
     <script src="14_1_ANOVA_files/header-attrs-2.7/header-attrs.js"></script>
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
@@ -10,7 +10,7 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# Multiple comparisons with ANOVA and posthoc testing
+# ANOVA and posthoc testing
 
 ---
 
@@ -77,7 +77,7 @@ summary(lm(drinkingMinutes ~ glassShape, data=beer.shape))
 
 &lt;img src="http://www.economics.soton.ac.uk/staff/aldrich/fisherguide/Doc1_files/image001.gif" width="30%" style="display: block; margin: auto;" /&gt;
 
-.footnote[http://www.economics.soton.ac.uk/staff/aldrich/fisherguide]
+.footnote[image: http://www.economics.soton.ac.uk/staff/aldrich/fisherguide]
 ---
 
 # Example 
@@ -151,6 +151,7 @@ Is `\(\mu_1=\mu_2=\mu_3=\mu_4\)`?
 
 Variation between groups `\((SS_\mathrm{groups})\)`: `\(\displaystyle \sum_j^G n_j (\bar{Y}_j-\bar{Y})^2\)`. 
 
+
 *distance from group mean to grand mean*
 
 `\(+\)` Variation within groups  `\((SS_\mathrm{error})\)`: `\(\displaystyle \sum_j^G \sum_i^{n_i} (Y_{i,j}-\bar{Y}_j)^2\)`. 
@@ -175,6 +176,10 @@ If group means are all the same then we expect that the **variation between grou
 
 `\(F=\frac{SS_\mathrm{groups}/df_{groups}}{SS_\mathrm{error}/df_{error}}\)`
 
+`\(df_{groups}\)` is the number of groups minus 1
+
+`\(df_{error}\)` is the number of observations minus `\(df_{groups}\)`
+
 ![](14_1_ANOVA_files/figure-html/unnamed-chunk-7-1.png)&lt;!-- --&gt;
            
 Now calculate the p-value.
@@ -185,20 +190,15 @@ Now calculate the p-value.
 
 ```r
 cuckoo.lm &lt;- lm(egg_length ~ host_species, cuckoo.dat)
-aov(cuckoo.lm)
+summary(aov(cuckoo.lm))
 ```
 
 ```
-## Call:
-##    aov(formula = cuckoo.lm)
-## 
-## Terms:
-##                 host_species Residuals
-## Sum of Squares      42.93965  94.24835
-## Deg. of Freedom            5       114
-## 
-## Residual standard error: 0.9092524
-## Estimated effects may be unbalanced
+##               Df Sum Sq Mean Sq F value   Pr(&gt;F)    
+## host_species   5  42.94   8.588   10.39 3.15e-08 ***
+## Residuals    114  94.25   0.827                     
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 Cool, there is a difference...
@@ -347,6 +347,17 @@ House 3: `\(\mathrm{PRICE} = \beta_0 + \beta_3 + \beta_1*X_\mathrm{WIDTH}\)`
 
 ```r
 library(sjPlot)
+```
+
+```
+## Warning: package 'sjPlot' was built under R version 4.0.5
+```
+
+```
+## Install package "strengejacke" from GitHub (`devtools::install_github("strengejacke/strengejacke")`) to load all sj-packages at once!
+```
+
+```r
 monet.dat &lt;- read.csv(file="../Data/monet.csv")
 lPRICE &lt;- log(monet.dat$PRICE)
 monet.mod &lt;- lm(log(PRICE) ~ SIZE + HOUSE, data=monet.dat)
@@ -412,6 +423,32 @@ class: inverse
 - While useful in some contexts, often t-tests or posthoc tests will be more powerful and informative.
 
 - ANOVA is sensitive to assumptions (normality, equal variance among groups) and different types should be used dependending on the design (balanced or unbalanced)
+
+- Alternatives to hypothesis testing, report pairwise differences and their confidence intervals.
+
+---
+# Cheatsheet
+
+#### One-way ANOVA
+
+Types I, II, and III ANOVA are equivalent.
+
+
+### Two-way ANOVA
+If data are balanced all types I, II, and III ANOVA are equivalent.
+
+Type I ANOVA removes terms sequentially (`aov`, `anova`). Means that order of predictors matters!
+
+Type II ANOVA removes a single term at a time (`drop1` or `Anova` in `car` package). Works when data are unbalanced.
+
+Type III ANOVA only tests main effects (not interactions). Appropriate when there is an interaction in teh model (`Anova` in `car` package)
+
+
+.footnote[https://mcfromnz.wordpress.com/2011/03/02/anova-type-iiiiii-ss-explained/]
+
+
+Type II ANOVA. 
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
