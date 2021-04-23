@@ -282,7 +282,7 @@ Using route length as an **offset** controls for the differential in survey effo
 `\begin{align*}
 ln(\mu) &amp;= \beta_0 + \beta_1\cdot x_1 + ln(offset)\\
 \mu &amp;= e^{\beta_0 + \beta_1\cdot x_1 + ln(offset)}\\
-\mu &amp;= e^{\beta_0 + \beta_1\cdot x_1} \cdot offset}\\
+\mu &amp;= e^{\beta_0 + \beta_1\cdot x_1} \cdot offset\\
 \frac{\mu}{offset} &amp;= e^{\beta_0 + \beta_1\cdot x_1} 
 \end{align*}`
 
@@ -339,6 +339,24 @@ Note that we need to apply the link function to the offset for it to be properly
 ```
 
 ---
+# ANOVA
+
+```
+##              Df Sum Sq Mean Sq F value Pr(&gt;F)    
+## rte.name     15 249907   16660   34.65 &lt;2e-16 ***
+## Residuals   305 146662     481                   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 40 observations deleted due to missingness
+```
+
+```
+## Warning: Removed 40 rows containing non-finite values (stat_boxplot).
+```
+
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;" /&gt;
+
+---
 # Model selection
 
 ### Can use same tools as linear regression. 
@@ -351,9 +369,9 @@ Note that we need to apply the link function to the offset for it to be properly
 
 - ANOVA (f-tests)
 
-- likelihood ratio tests: `anova(glm1, glm2)`  performs a test between model 1 and model 2.
-
 - AIC
+
+*but no adjusted `\(R^2\)`*!
 
 
 ---
@@ -367,12 +385,14 @@ Recall that in a Poisson distribution the mean and variance are equal: `\(E[Y] =
 
 How can we test this assumption?
 
-- Formal goodness of fit tests exist (Pearson's `\(\chi^2\)`, )
+- Formal goodness of fit tests exist (Pearson's `\(\chi^2\)`)
 - Fit model with overdispersion (next section) and compare via AIC
 
 ---
-# Overdispersion
+# Overdispersion: empirical variance is higher than expected
 
+`\(Var(Y) &gt; E(Y)\)`
+ 
 **Reasons** data may be overdispersed
 
 - Omitted variables
@@ -393,14 +413,21 @@ How can we test this assumption?
 # Negative Binomial
 
 The true variance is often higher (**overdispersion**) than the Poisson distribution. The Negative Binomial distribution allows for this overdispersion.
-
+.pull-left[
 `\begin{align*}
-Y|\lambda &amp;\sim \mathrm{Poisson}(\lambda)\\
-\lambda &amp;\sim \mathrm{Gamma}(k, \, r)\\
+Y|\mu &amp;\sim \mathrm{Poisson}(\mu)\\
+\mu &amp;\sim \mathrm{Gamma}(\theta, \, r)\\
 Y &amp;\sim \mathrm{Negative\,\, binomial}(\mu, k)
 \end{align*}`
+]
+.pull-right[
+`\begin{align*}
+E(Y) &amp;= \mu\\
+Var(Y) &amp;= \mu + \frac{\mu^2}{\theta}
+\end{align*}`
+]
 
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-9-1.png" width="70%" /&gt;
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-10-1.png" width="50%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -408,26 +435,81 @@ Y &amp;\sim \mathrm{Negative\,\, binomial}(\mu, k)
 
 
 ```r
-library(MASS)
+library(MASS)  #for glm.nb
+library(MuMIn) #for AICc
 
 beaver.pois &lt;- glm(num.col ~ rte.name + offset(log(rte.km)), data=beav.dat, family=poisson)
-beaver.nb &lt;- glm.nb(num.col ~ rte.name + offset(log(rte.km)), data=beav.dat)
-cat("Poisson: ", AIC(beaver.pois), '\n')
+beaver.nb   &lt;- glm.nb(num.col ~ rte.name + offset(log(rte.km)), data=beav.dat)
+cat("Poisson: ", AICc(beaver.pois), '\n')
 ```
 
 ```
-## Poisson:  3576.596
+## Poisson:  3578.386
 ```
 
 ```r
-cat("Negative binomial: ", AIC(beaver.nb), '\n')
+cat("Negative binomial: ", AICc(beaver.nb), '\n')
 ```
 
 ```
-## Negative binomial:  2890.805
+## Negative binomial:  2892.825
 ```
 
 Based on this output is **overdispersion** present?
+
+---
+# Comparing confidence intervals
+
+.pull-left[
+**Poisson**
+
+
+```r
+confint(beaver.pois)[1:3,]
+```
+
+```
+## Waiting for profiling to be done...
+```
+
+```
+##                         2.5 %      97.5 %
+## (Intercept)        -0.1214222 -0.02229578
+## rte.nameC_st_louis -0.6828915 -0.55759634
+## rte.nameCass       -0.7039246 -0.57580798
+```
+]
+.pull-right[
+**Negative binomial**
+
+
+```r
+confint(beaver.nb)[1:3,]
+```
+
+```
+## Waiting for profiling to be done...
+```
+
+```
+##                         2.5 %      97.5 %
+## (Intercept)        -0.1829877  0.04269922
+## rte.nameC_st_louis -0.7654379 -0.47628722
+## rte.nameCass       -0.7823106 -0.49885024
+```
+]
+---
+# Summary of count models
+
+- Count models can be used to model discrete counts
+  - Especially useful when counts are near 0
+  - If counts are high, standard linear regression with a transformation tends to work well
+  
+- Similar tools available as standard linear regression
+
+- Overdispersion is almost always present. Should default to negative binomial.
+  - Not accounting for overdispersion leads to overconfidence.
+
 
 ---
 
@@ -451,10 +533,10 @@ Binomial regression has a **discrete response** with continuous or discrete pred
 
 &lt;br&gt;
 
-Examples: survival, annual recruitment, presence/absence, disease infection/recovery
+Examples: survival, presence/absence, disease infection/recovery, dilution assays
 
 ---
-# Logistic regression
+# Logistic regression and the logit link
 
 `\begin{align*}
 \mathrm{logit}(p) &amp;\equiv \ln\left( \frac{p}{1-p}\right) = \beta_0 + \beta_1\cdot x_1 + \dots + \beta_p x_p\\
@@ -520,7 +602,7 @@ Var[Y] &amp;= Np(1-p)
 ]
 
 .pull-right[
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-12-1.png" width="100%" /&gt;
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-15-1.png" width="80%" /&gt;
 ]
 
 ---
@@ -528,13 +610,14 @@ Var[Y] &amp;= Np(1-p)
 
 For a continuous predictor variable, `\(x_1\)` , the regression coefficient, `\(\beta_1\)` , represents the change in log-odds per unit change in `\(x_1\)` holding other predictors constant.
 
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-13-1.png" width="90%" /&gt;
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-16-1.png" width="90%" /&gt;
 
---
+---
+# Interpreting II
 
 The intercept determines the probability at `\(x=0\)`: `\(p=\frac{e^{\beta_0}}{1 + e^{\beta_0}}=?\)`
 
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-14-1.png" width="40%" /&gt;
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-17-1.png" width="40%" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -599,7 +682,7 @@ glm.fit  &lt;- glm(y ~ x, data=sim.dat, family=binomial)
 
 .pull-right[
 
-![](14_2_GLMs_files/figure-html/unnamed-chunk-17-1.png)&lt;!-- --&gt;
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-20-1.png" width="60%" /&gt;
 ]
 
 ---
@@ -674,23 +757,24 @@ glm(cbind(successes, fails) ~ x, data=sim.dat, family=binomial)
 .pull-right[
 
 
-![](14_2_GLMs_files/figure-html/unnamed-chunk-21-1.png)&lt;!-- --&gt;
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-24-1.png" width="60%" /&gt;
 ]
 
 ---
 # Example: Haleakalā silverswords
 
 
-&lt;img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Argyroxiphium_sandwicense_subsp._macrocephalum.png" width="38%" /&gt;
+&lt;img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Argyroxiphium_sandwicense_subsp._macrocephalum.png" width="22%" style="display: block; margin: auto;" /&gt;
 
   
-.footnote[Krushelnycky, P.D., Loope, L.L., Giambelluca, T.W., Starr, F., Starr, K., Drake, D.R., Taylor, A.D. and Robichaux, R.H., 2013. Climate‐associated population declines reverse recovery and threaten future of an iconic high‐elevation plant. Global Change Biology, 19(3); 
+.footnote[Krushelnycky, P.D., Loope, L.L., Giambelluca, T.W., Starr, F., Starr, K., Drake, D.R., Taylor, A.D. and Robichaux, R.H., 2013. Climate‐associated population declines reverse recovery and threaten future of an iconic high‐elevation plant. Global Change Biology, 19(3)
+
 Image: wikimedia]
 
 ---
 # Survival
 
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-23-1.png" width="60%" /&gt;
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-26-1.png" width="60%" style="display: block; margin: auto;" /&gt;
 
 ---
 # Modeling survival with `glm`
@@ -728,19 +812,27 @@ Image: wikimedia]
 
 `\(R^2_{pseudo}=\)` 0.62
 
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-25-1.png" width="60%" /&gt;
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-28-1.png" width="60%" style="display: block; margin: auto;" /&gt;
 
 ---
 # What about overdispersion?
-d
+
+.pull-left[
 `\begin{align*}
 Y|p &amp;\sim \mathrm{Binomial}(N,\, p)\\
 p   &amp;\sim \mathrm{Beta}(\alpha, \beta) \\
 Y   &amp;\sim \mathrm{Beta-binomial(\mu, \rho)}
 \end{align*}`
+]
 
-`$$E[Y]= N \mu, \,\,\,\ Var[Y]=N \mu \left(1 - \mu \right) + \rho N(N-1) \mu \left(1 - \mu \right)$$`
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-26-1.png" width="60%" /&gt;
+.pull-right[
+`\begin{align*}
+E[Y] &amp;= N \mu \\ 
+Var[Y] &amp;= N \mu \left(1 - \mu \right) + \rho N(N-1) \mu \left(1 - \mu \right)
+\end{align*}`
+]
+
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-29-1.png" width="60%" style="display: block; margin: auto;" /&gt;
 
 ---
 # Beta-binomial regression
@@ -780,6 +872,8 @@ summary(model.bb)
 ---
 # Comparing parameter estimates
 
+.pull-left[
+**Binomial**
 
 ```r
 confint(model.bin, method="profile")
@@ -790,7 +884,9 @@ confint(model.bin, method="profile")
 ## (Intercept) -4.99399186 -4.441151785
 ## Elev         0.00191439  0.002147614
 ```
-
+]
+.pull-right[
+**Beta-binomial**
 
 ```r
 confintvglm(model.bb, method="profile")
@@ -802,7 +898,7 @@ confintvglm(model.bb, method="profile")
 ## (Intercept):2 -3.7124930079 -2.658952145
 ## Elev           0.0008910092  0.002139821
 ```
-
+]
 ---
 # Comparing model fits
 
@@ -815,7 +911,7 @@ print(c(AIC(model.bin), AIC(model.bb)))
 ## [1] 1005.151  341.455
 ```
 ----
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-31-1.png" width="60%" /&gt;
+&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-34-1.png" width="60%" /&gt;
 
 ---
 #Summary 

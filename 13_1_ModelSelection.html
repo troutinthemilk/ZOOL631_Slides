@@ -3,7 +3,7 @@
   <head>
     <title>Multimodel inference</title>
     <meta charset="utf-8" />
-    <script src="13_1_ModelSelection_files/header-attrs-2.7/header-attrs.js"></script>
+    <script src="13_1_ModelSelection_files/header-attrs-2.6/header-attrs.js"></script>
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
   <body>
@@ -259,7 +259,7 @@ background-position: center
 ---
 # Warning!
 
-All the selection criterion we will discuss fail when a large number of comparisons are made. Instead we need to consider a small set of  alternative biological hypotheses.
+All the selection criterion have poor properties when a large number of comparisons are made. Instead we need to consider a small set of  alternative biological hypotheses.
 
 ---
 # Coefficient of determination `\((R^2)\)`
@@ -528,7 +528,7 @@ Here we predict model 3 is best in the set.
 ---
 # Akaike's Information Criterion
 
-**Hirotugu Akaike** estimated the bias in the estimate of the likelihood, finding that bias increased with the number of model parameters.
+**Hirotugu Akaike** estimated the bias in the likelihood when used to approximate the **Kullback-Leibler divergence**. He found that bias increased with the number of model parameters.
 
 &lt;img src="https://onlinelibrary.wiley.com/cms/asset/4b1fcb4c-6d4f-43f9-91a1-fef39470fae4/wics1460-toc-0001-m.jpg" width="40%" style="display: block; margin: auto;" /&gt;
 
@@ -612,8 +612,9 @@ model.sel(list(mod1, mod2, mod3, mod4, mod5), rank=AICc)
 ---
 # Case study: puma declines in the GYE
 
-&lt;img src="../Figures/Elbroch_Puma.jpg" width="50%" style="display: block; margin: auto;" /&gt;
+&lt;img src="../Figures/Elbroch_cover.png" width="30%" style="display: block; margin: auto;" /&gt;
 
+.footnote[Elbroch *et al* 2020. Reintroduced wolves and hunting limit the abundance of a subordinate apex predator in a multi-use landscape. *Proc. R. Soc.*]
 ---
 # Potential causes
 
@@ -739,9 +740,29 @@ sqrt(diag(vcov(model.avg(AIC.list)))) #model averaged standard errors
 
 Other procedures sometimes used for exploratory analyses
 
+- The p-values often aren't reliable indicators of parameter importance in multiple regression
+
 - Stepwise selection: tends to overfit models
 
 - All subsets regression: same
+
+
+---
+class: inverse
+
+# Summary
+
+- The goal of model selection is to identify the best among a set
+
+- Selection criterion balance fit vs complexity
+
+  - `\(R_{adj}^2\)` measures how well the mean explains the data
+  
+  - Ability to predict new data can also be used
+  
+  - AIC approximates LOOCV
+
+- Model averaging allows us to combine information across models
 
 ---
 # Resources
