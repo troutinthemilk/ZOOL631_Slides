@@ -102,7 +102,7 @@ Use the log-link function: `\(g(\mu) = ln(\mu)\)`. Then the inverse link is `\(e
   Y &amp;\sim \mathrm{Poisson}(\mu)
 \end{align*}`
 
-$$ E[Y] = \mu, \,\,\,\,\,\,\,\, Var[Y]=\mu $$
+$$ E(Y) = \mu, \,\,\,\,\,\,\,\, Var(Y)=\mu $$
 
 &lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-1-1.png" width="35%" style="display: block; margin: auto;" /&gt;
 
@@ -140,13 +140,14 @@ We've added the `family` argument to specify which distribution to use. We've al
 
 
 ```r
-summary(glm(Pheasants ~ grassCover, data=pheas.dat, family=poisson))
+summary(glm(Pheasants ~ grassCover, data=pheas.dat, family=poisson(link="log")))
 ```
 
 ```
 ## 
 ## Call:
-## glm(formula = Pheasants ~ grassCover, family = poisson, data = pheas.dat)
+## glm(formula = Pheasants ~ grassCover, family = poisson(link = "log"), 
+##     data = pheas.dat)
 ## 
 ## Deviance Residuals: 
 ##     Min       1Q   Median       3Q      Max  
@@ -247,7 +248,7 @@ sum of squares.
 
 For the pheasant model, `\(R^2_{pseudo}=\)` 0.8 (remember the data are fake!).
 ---
-# Offsets in Poisson regression
+# Offsets in count models
 
 Count data ( `\(Y\)`) are often collected:
 
@@ -379,7 +380,7 @@ Note that we need to apply the link function to the offset for it to be properly
 
 &lt;br&gt;
 
-Recall that in a Poisson distribution the mean and variance are equal: `\(E[Y] = Var[Y]\)`.
+Recall that in a Poisson distribution the mean and variance are equal: `\(E(Y) = Var(Y)\)`.
 
 &lt;br&gt;
 
@@ -412,7 +413,7 @@ How can we test this assumption?
 ---
 # Negative Binomial
 
-The true variance is often higher (**overdispersion**) than the Poisson distribution. The Negative Binomial distribution allows for this overdispersion.
+The variance in the data is often higher than the Poisson distribution. This is called **overdispersion**. The Negative Binomial distribution can account for overdispersion.
 .pull-left[
 `\begin{align*}
 Y|\mu &amp;\sim \mathrm{Poisson}(\mu)\\
@@ -422,8 +423,8 @@ Y &amp;\sim \mathrm{Negative\,\, binomial}(\mu, k)
 ]
 .pull-right[
 `\begin{align*}
-E(Y) &amp;= \mu\\
-Var(Y) &amp;= \mu + \frac{\mu^2}{\theta}
+&amp;E(Y) = \mu\\
+&amp;Var(Y) = \mu + \frac{\mu^2}{\theta}
 \end{align*}`
 ]
 
@@ -498,6 +499,12 @@ confint(beaver.nb)[1:3,]
 ## rte.nameCass       -0.7823106 -0.49885024
 ```
 ]
+
+&lt;br&gt;
+
+----
+Not accounting for overdispersion leads to confidence intervals that are too narrow (overconfidence!)
+
 ---
 # Summary of count models
 
@@ -505,15 +512,19 @@ confint(beaver.nb)[1:3,]
   - Especially useful when counts are near 0
   - If counts are high, standard linear regression with a transformation tends to work well
   
-- Similar tools available as standard linear regression
+- Similar tools for hypothesis testing and model selection as standard linear regression
 
-- Overdispersion is almost always present. Should default to negative binomial.
+- **Overdispersion** is almost always present. Should default to negative binomial.
   - Not accounting for overdispersion leads to overconfidence.
+  
+- **Offsets** can be used to control for differential effort in space or time
 
 
 ---
 
 class: center, middle, inverse
+background-image: url("https://ericjoyner.com/wp-content/uploads/2020/04/Happy-Garden.jpg")
+background-position: center
 
 # Categorical data
   
@@ -549,8 +560,8 @@ Y &amp;\sim \mathrm{binomial}(N,\, p)
 #### Recall the binomial distribution properties:
 
 `\begin{align*}
-E[Y] &amp;= Np\\
-Var[Y] &amp;= Np(1-p)
+E(Y) &amp;= Np\\
+Var(Y) &amp;= Np(1-p)
 \end{align*}`
 
 
@@ -688,7 +699,7 @@ glm.fit  &lt;- glm(y ~ x, data=sim.dat, family=binomial)
 ---
 # Response data in logistic regression II
 
-... or the response data can be a vector of successes and failures
+... or the response data can be a vector of successes and failures. This is useful if the predictors hold for multiple observations.
 
 
 ```r
@@ -821,14 +832,14 @@ Image: wikimedia]
 `\begin{align*}
 Y|p &amp;\sim \mathrm{Binomial}(N,\, p)\\
 p   &amp;\sim \mathrm{Beta}(\alpha, \beta) \\
-Y   &amp;\sim \mathrm{Beta-binomial(\mu, \rho)}
+Y   &amp;\sim \mathrm{Beta-binomial(N, \mu, \rho)}
 \end{align*}`
 ]
 
 .pull-right[
 `\begin{align*}
-E[Y] &amp;= N \mu \\ 
-Var[Y] &amp;= N \mu \left(1 - \mu \right) + \rho N(N-1) \mu \left(1 - \mu \right)
+E(Y) &amp;= N \mu \\ 
+Var(Y) &amp;= N \mu \left(1 - \mu \right) + \rho N(N-1) \mu \left(1 - \mu \right)
 \end{align*}`
 ]
 
@@ -876,7 +887,7 @@ summary(model.bb)
 **Binomial**
 
 ```r
-confint(model.bin, method="profile")
+confint(model.bin)
 ```
 
 ```
@@ -889,14 +900,14 @@ confint(model.bin, method="profile")
 **Beta-binomial**
 
 ```r
-confintvglm(model.bb, method="profile")
+confintvglm(model.bb)
 ```
 
 ```
-##                       2.5 %       97.5 %
-## (Intercept):1 -4.9445201847 -1.898432854
-## (Intercept):2 -3.7124930079 -2.658952145
-## Elev           0.0008910092  0.002139821
+##                      2.5 %       97.5 %
+## (Intercept):1 -4.911956833 -1.922584266
+## (Intercept):2 -3.737286449 -2.698586073
+## Elev           0.000898592  0.002125745
 ```
 ]
 ---
