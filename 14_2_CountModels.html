@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Generalized Linear Models</title>
+    <title>Generalized Linear Models: Count models</title>
     <meta charset="utf-8" />
-    <script src="14_2_GLMs_files/header-attrs-2.7/header-attrs.js"></script>
+    <script src="14_2_CountModels_files/header-attrs-2.7/header-attrs.js"></script>
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# Generalized Linear Models
+# Generalized Linear Models: Count models
 
 ---
 
@@ -104,12 +104,12 @@ Use the log-link function: `\(g(\mu) = ln(\mu)\)`. Then the inverse link is `\(e
 
 $$ E(Y) = \mu, \,\,\,\,\,\,\,\, Var(Y)=\mu $$
 
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-1-1.png" width="35%" style="display: block; margin: auto;" /&gt;
+&lt;img src="14_2_CountModels_files/figure-html/unnamed-chunk-1-1.png" width="35%" style="display: block; margin: auto;" /&gt;
 
 ---
 # Including predictor variables
 
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-2-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+&lt;img src="14_2_CountModels_files/figure-html/unnamed-chunk-2-1.png" width="50%" style="display: block; margin: auto;" /&gt;
 
 
 `\begin{align*}
@@ -355,7 +355,7 @@ Note that we need to apply the link function to the offset for it to be properly
 ## Warning: Removed 40 rows containing non-finite values (stat_boxplot).
 ```
 
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="14_2_CountModels_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 # Model selection
@@ -428,7 +428,7 @@ Y &amp;\sim \mathrm{Negative\,\, binomial}(\mu, k)
 \end{align*}`
 ]
 
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-10-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+&lt;img src="14_2_CountModels_files/figure-html/unnamed-chunk-10-1.png" width="50%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -519,421 +519,6 @@ Not accounting for overdispersion leads to confidence intervals that are too nar
   
 - **Offsets** can be used to control for differential effort in space or time
 
-
----
-
-class: center, middle, inverse
-background-image: url("https://ericjoyner.com/wp-content/uploads/2020/04/Happy-Garden.jpg")
-background-position: center
-
-# Categorical data
-  
----
-
-# Binomial (logistic) regression 
-&lt;br&gt;
-
-We've had 
-1. Continuous response, continuous predictor (regression)
-2. Continuous response, discrete predictor (t-test, ANOVA)
-
-&lt;br&gt;
-
-Binomial regression has a **discrete response** with continuous or discrete predictors.
-
-
-&lt;br&gt;
-
-Examples: survival, presence/absence, disease infection/recovery, dilution assays
-
----
-# Logistic regression and the logit link
-
-`\begin{align*}
-\mathrm{logit}(p) &amp;\equiv \ln\left( \frac{p}{1-p}\right) = \beta_0 + \beta_1\cdot x_1 + \dots + \beta_p x_p\\
-p &amp;= \frac{e^{\beta_0 + \beta_1\cdot x_1 + \dots + \beta_p x_p}}{1 + e^{\beta_0 + \beta_1\cdot x_1 + \dots + \beta_p x_p}} \\
-Y &amp;\sim \mathrm{binomial}(N,\, p)
-\end{align*}`
-
-&lt;br&gt;
-
-#### Recall the binomial distribution properties:
-
-`\begin{align*}
-E(Y) &amp;= Np\\
-Var(Y) &amp;= Np(1-p)
-\end{align*}`
-
-
-
----
-#Odds
-
-`\(\frac{p}{1-p}\)` is called the **odds** and gives the relative probability of success.  It is often used in betting. 
-
-.pull-left[
-&lt;br&gt;
-
-&lt;table&gt;
- &lt;thead&gt;
-  &lt;tr&gt;
-   &lt;th style="text-align:right;"&gt; p &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; odds &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; logit.log.odds. &lt;/th&gt;
-  &lt;/tr&gt;
- &lt;/thead&gt;
-&lt;tbody&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 0.10 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -2.2 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 0.25 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.33 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -1.1 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 0.50 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.00 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 0.75 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.00 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.1 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 0.90 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9.00 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.2 &lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-]
-
-.pull-right[
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-15-1.png" width="80%" /&gt;
-]
-
----
-# Interpreting parameters in logistic regression
-
-For a continuous predictor variable, `\(x_1\)` , the regression coefficient, `\(\beta_1\)` , represents the change in log-odds per unit change in `\(x_1\)` holding other predictors constant.
-
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-16-1.png" width="90%" /&gt;
-
----
-# Interpreting II
-
-The intercept determines the probability at `\(x=0\)`: `\(p=\frac{e^{\beta_0}}{1 + e^{\beta_0}}=?\)`
-
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-17-1.png" width="40%" style="display: block; margin: auto;" /&gt;
-
-
----
-# Response data in logistic regression
-
-We can have response data of 0 or 1...
-
-
-```r
-glm.fit  &lt;- glm(y ~ x, data=sim.dat, family=binomial)
-```
-
-.pull-left[
-
-&lt;table&gt;
- &lt;thead&gt;
-  &lt;tr&gt;
-   &lt;th style="text-align:right;"&gt; x &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; y &lt;/th&gt;
-  &lt;/tr&gt;
- &lt;/thead&gt;
-&lt;tbody&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; -6.264538 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 1.836433 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; -8.356286 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 15.952808 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 3.295078 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; -8.204684 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 4.874290 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 7.383247 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 5.757814 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-]
-
-.pull-right[
-
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-20-1.png" width="60%" /&gt;
-]
-
----
-# Response data in logistic regression II
-
-... or the response data can be a vector of successes and failures. This is useful if the predictors hold for multiple observations.
-
-
-```r
-glm(cbind(successes, fails) ~ x, data=sim.dat, family=binomial)
-```
-
-.pull-left[
-&lt;table&gt;
- &lt;thead&gt;
-  &lt;tr&gt;
-   &lt;th style="text-align:right;"&gt; successes &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; fails &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; x &lt;/th&gt;
-  &lt;/tr&gt;
- &lt;/thead&gt;
-&lt;tbody&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 19 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -6.264538 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.836433 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -8.356286 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15.952808 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.295078 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 23 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -8.204684 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 4.874290 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 7.383247 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 5.757814 &lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-]
-
-.pull-right[
-
-
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-24-1.png" width="60%" /&gt;
-]
-
----
-# Example: Haleakalā silverswords
-
-
-&lt;img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Argyroxiphium_sandwicense_subsp._macrocephalum.png" width="22%" style="display: block; margin: auto;" /&gt;
-
-  
-.footnote[Krushelnycky, P.D., Loope, L.L., Giambelluca, T.W., Starr, F., Starr, K., Drake, D.R., Taylor, A.D. and Robichaux, R.H., 2013. Climate‐associated population declines reverse recovery and threaten future of an iconic high‐elevation plant. Global Change Biology, 19(3)
-
-Image: wikimedia]
-
----
-# Survival
-
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-26-1.png" width="60%" style="display: block; margin: auto;" /&gt;
-
----
-# Modeling survival with `glm`
-
-
-```
-## 
-## Call:
-## glm(formula = cbind(Survive, Die) ~ Elev, family = binomial, 
-##     data = silver.dat)
-## 
-## Deviance Residuals: 
-##      Min        1Q    Median        3Q       Max  
-## -10.9712   -2.6427    0.1903    3.5485   12.7223  
-## 
-## Coefficients:
-##               Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept) -4.717e+00  1.410e-01  -33.45   &lt;2e-16 ***
-## Elev         2.031e-03  5.949e-05   34.13   &lt;2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-##     Null deviance: 2074.36  on 30  degrees of freedom
-## Residual deviance:  794.65  on 29  degrees of freedom
-## AIC: 1005.2
-## 
-## Number of Fisher Scoring iterations: 3
-```
-
-
----
-# How did we do?
-
-`\(R^2_{pseudo}=\)` 0.62
-
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-28-1.png" width="60%" style="display: block; margin: auto;" /&gt;
-
----
-# What about overdispersion?
-
-.pull-left[
-`\begin{align*}
-Y|p &amp;\sim \mathrm{Binomial}(N,\, p)\\
-p   &amp;\sim \mathrm{Beta}(\alpha, \beta) \\
-Y   &amp;\sim \mathrm{Beta-binomial(N, \mu, \rho)}
-\end{align*}`
-]
-
-.pull-right[
-`\begin{align*}
-E(Y) &amp;= N \mu \\ 
-Var(Y) &amp;= N \mu \left(1 - \mu \right) + \rho N(N-1) \mu \left(1 - \mu \right)
-\end{align*}`
-]
-
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-29-1.png" width="60%" style="display: block; margin: auto;" /&gt;
-
----
-# Beta-binomial regression
-
-
-```r
-library(VGAM) #contains beta-binomial regression
-model.bin &lt;- glm(cbind(Survive, Die) ~ Elev, data=silver.dat, family=binomial)
-model.bb &lt;- vglm(cbind(Survive, Die) ~ Elev, data=silver.dat, family=betabinomial)
-
-summary(model.bb)
-```
-
-```
-## 
-## Call:
-## vglm(formula = cbind(Survive, Die) ~ Elev, family = betabinomial, 
-##     data = silver.dat)
-## 
-## Coefficients: 
-##                 Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept):1 -3.4172705  0.7626091  -4.481 7.43e-06 ***
-## (Intercept):2 -3.2179363  0.2649795 -12.144  &lt; 2e-16 ***
-## Elev           0.0015122  0.0003131   4.830 1.36e-06 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Names of linear predictors: logitlink(mu), logitlink(rho)
-## 
-## Log-likelihood: -167.7275 on 59 degrees of freedom
-## 
-## Number of Fisher scoring iterations: 6 
-## 
-## No Hauck-Donner effect found in any of the estimates
-```
-
----
-# Comparing parameter estimates
-
-.pull-left[
-**Binomial**
-
-```r
-confint(model.bin)
-```
-
-```
-##                   2.5 %       97.5 %
-## (Intercept) -4.99399186 -4.441151785
-## Elev         0.00191439  0.002147614
-```
-]
-.pull-right[
-**Beta-binomial**
-
-```r
-confintvglm(model.bb)
-```
-
-```
-##                      2.5 %       97.5 %
-## (Intercept):1 -4.911956833 -1.922584266
-## (Intercept):2 -3.737286449 -2.698586073
-## Elev           0.000898592  0.002125745
-```
-]
----
-# Comparing model fits
-
-
-```r
-print(c(AIC(model.bin), AIC(model.bb)))
-```
-
-```
-## [1] 1005.151  341.455
-```
-----
-&lt;img src="14_2_GLMs_files/figure-html/unnamed-chunk-34-1.png" width="60%" /&gt;
-
----
-#Summary 
-
-- GLM's extend the application of LM's beyond the normal distribution. 
-  - Often useful with biological data
-
-- Standard distributions in `glm` cannot handle overdisperison.
-
-- Overdispersion can have strong influences on SE's and p-values
-  - Not accounting for overdispersion can lead to overconfidence in estimates and model.
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
