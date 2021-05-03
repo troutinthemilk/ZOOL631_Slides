@@ -135,7 +135,7 @@ The intercept determines the probability at `\(x=0\)`: `\(p=\frac{e^{\beta_0}}{1
 ---
 # Response data in logistic regression
 
-We can have response data of 0 or 1...
+We can have response data of 0 or 1. This can be given to R as factors as well (e.g., `survive`/`die`, `positive`/`negative`, etc.)
 
 
 ```r
@@ -401,7 +401,7 @@ confint(model.bin)
 **Beta-binomial**
 
 ```r
-confintvglm(model.bb)
+confint(model.bb)
 ```
 
 ```
@@ -422,8 +422,8 @@ print(c(AIC(model.bin), AIC(model.bb)))
 ```
 ## [1] 1005.151  341.455
 ```
-----
-&lt;img src="15_1_BinomialRegression_files/figure-html/unnamed-chunk-21-1.png" width="60%" /&gt;
+
+&lt;img src="15_1_BinomialRegression_files/figure-html/unnamed-chunk-21-1.png" width="60%" style="display: block; margin: auto;" /&gt;
 
 ---
 #Summary 

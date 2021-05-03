@@ -149,7 +149,7 @@ ggplot() +
 ---
 # Response data in logistic regression
 
-We can have response data of 0 or 1...
+We can have response data of 0 or 1. This can be given to R as factors as well (e.g., `survive`/`die`, `positive`/`negative`, etc.)
 
 ```{r, eval=F}
 glm.fit  <- glm(y ~ x, data=sim.dat, family=binomial)
@@ -321,7 +321,7 @@ confint(model.bin)
 .pull-right[
 **Beta-binomial**
 ```{r}
-confintvglm(model.bb)
+confint(model.bb)
 ```
 ]
 ---
@@ -330,12 +330,12 @@ confintvglm(model.bb)
 ```{r}
 print(c(AIC(model.bin), AIC(model.bb)))
 ```
-----
-```{r, echo=F, out.width="60%", fig.asp=0.8}
-pred.sil.bb <- predict(model.bb, type="response")
+
+```{r, echo=F, out.width="60%", fig.asp=1/1.62, fig.align="center"}
+silver.dat$Survival <- silver.dat$Survive/silver.dat$Pop_size #create a vector of the observed survival probabilities
+pred.sil.bb <- predict(model.bb, type="response") #this extracts predictions 
 ggplot(data=silver.dat, aes(x=Elev, y=Survival)) +
   geom_point(size=3) + 
-  geom_line(y=pred.sil) + 
   geom_line(aes(y=pred.sil.bb), col="cornflowerblue", size=1.2) + 
   xlab("Elevation") + ylab('Proportion surviving')
 ```

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Principal Component Analysis</title>
+    <meta charset="utf-8" />
+    <script src="15_3_PCA_files/header-attrs-2.7/header-attrs.js"></script>
+    <script src="15_3_PCA_files/htmlwidgets-1.5.3/htmlwidgets.js"></script>
+    <script src="15_3_PCA_files/plotly-binding-4.9.3/plotly.js"></script>
+    <script src="15_3_PCA_files/typedarray-0.1/typedarray.min.js"></script>
+    <script src="15_3_PCA_files/jquery-3.5.1/jquery.min.js"></script>
+    <link href="15_3_PCA_files/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet" />
+    <script src="15_3_PCA_files/crosstalk-1.1.1/js/crosstalk.min.js"></script>
+    <link href="15_3_PCA_files/plotly-htmlwidgets-css-1.57.1/plotly-htmlwidgets.css" rel="stylesheet" />
+    <script src="15_3_PCA_files/plotly-main-1.57.1/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Principal Component Analysis
+
+---
+
+
+
+
+
+
+# Modeling courses at UH
+**Fall**
+
+* OCN 683	Advanced Statistics in R. Implements more advanaced modeling techniques in R. A good followup to the second half of the course.
+
+* ZOOL 632 Advanced biometry (Model Thinking). Introduction to important models in ecology and evolution. Lots of simulating!
+
+* OCN McManus?
+
+* MATH 372	Elem Probability &amp; Statistics. If want to know more about the first half of the course, this would be an excellent followup.  
+
+* BIOL 220 Biostatistics. A very gentle introduction to statistics with R. This would be a refersher.
+
+**Spring**
+
+*	TPSS 603 Experimental design
+
+others?
+
+
+---
+# Goals
+
+&lt;br&gt;
+  
+&lt;br&gt;
+  
+1. Identify multivariate data.
+
+2. Understand goals of ordination.
+
+3. Apply principal components analysis (PCA) on multivariate data
+
+4. Interpret principle components.
+
+---
+# The stage.
+
+So far we have explored **univariate** methods, suitable for single response variables (such as a single taxa).
+
+&lt;br&gt;
+
+What if we want to know about the community as a whole?
+
+---
+# Vectors
+
+A **vector** of data is an array of elements that can be thought of as a point in some n-dimensional space.
+
+`$$\mathbf{Y} = \left[ \begin{matrix}
+1 \\
+2 \\
+3 
+\end{matrix}\right]$$`
+
+
+<div align="center">
+<div id="htmlwidget-5da242d7837004f9a5c2" style="width:100%;height:400px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-5da242d7837004f9a5c2">{"x":{"visdat":{"1ae0461676c4":["function () ","plotlyVisDat"]},"cur_data":"1ae0461676c4","attrs":{"1ae0461676c4":{"x":1,"y":2,"z":3,"colors":"#BF382A","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter3d","mode":"markers","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"X"},"yaxis":{"title":"Y"},"zaxis":{"title":"Z"}},"hovermode":"closest","showlegend":false},"source":"A","config":{"showSendToCloud":false},"data":[{"x":[1],"y":[2],"z":[3],"type":"scatter3d","mode":"markers","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+
+---
+# Matrices
+
+A collection of vectors is called a matrix.
+
+`$$\mathbf{Y} = \left[ \begin{matrix}
+1 &amp;  5\\
+2 &amp; -1\\
+3 &amp; 7
+\end{matrix}\right]$$`
+
+<div align="center">
+<div id="htmlwidget-a2595ab3853ad9da5800" style="width:100%;height:400px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a2595ab3853ad9da5800">{"x":{"visdat":{"1ae030ba671f":["function () ","plotlyVisDat"]},"cur_data":"1ae030ba671f","attrs":{"1ae030ba671f":{"x":[1,5],"y":[2,-1],"z":[3,7],"colors":"#BF382A","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter3d","mode":"markers","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"X"},"yaxis":{"title":"Y"},"zaxis":{"title":"Z"}},"hovermode":"closest","showlegend":false},"source":"A","config":{"showSendToCloud":false},"data":[{"x":[1,5],"y":[2,-1],"z":[3,7],"type":"scatter3d","mode":"markers","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+---
+# A larger matrix
+
+<div align="center">
+<div id="htmlwidget-20c71dad607a8e038eb7" style="width:100%;height:400px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-20c71dad607a8e038eb7">{"x":{"visdat":{"1ae032c42d1":["function () ","plotlyVisDat"]},"cur_data":"1ae032c42d1","attrs":{"1ae032c42d1":{"x":[-1.37761779898756,0.0691751838003829,-0.148523198867913,-0.197240056222907,-0.369176502212676,-1.29666573298591,-0.310346812655305,0.780677819255621,-0.240707258014235,-2.02908541239572,-0.803808127614545,-2.26571528399049,-0.211621213232409,0.050107804394262,0.386252998321083,-0.654029271852954,0.373744778396359,0.0470598148792455,-1.37419060570018,-0.617896526503643,-1.76250442710538,0.0297753902963301,0.250408251170433,1.98550883386922,-0.930342348044058,-1.66667000626291,-1.09875763814131,-0.509186915136257,0.891155395507608,-1.08310012325676,0.126936157360155,-0.807896473040434,0.795616429267156,-0.331852421777647,0.759658189306003,0.661600346323801,-0.91138371112236,0.0380917344951745,-1.120283472359,0.845089692201766,-0.632895236993638,-1.12089590194681,-0.605435598944707,0.463000454521309,0.407434690663929,1.08456821343565,1.05789685141098,0.119845277323054,0.692487431079643,-0.999988046629375,-3.1287132622856,1.88907662172076,-0.462062350362437,0.831104650400982,1.4866370678458,-0.974937393716204,0.964618275679029,-0.481614352799213,-0.435974390605595,-1.33183474062321,0.227417077667939,-0.649988982388734,-1.40872779085908,0.511195566790329,1.9350544012807,0.561402965048645,0.784130211158397,-0.065583547996956,-0.0306261260023404,-0.213716895633747,0.964322137757326,0.376666350347572,-0.214972890537863,-0.949723119558502,-0.648527090518791,-1.25162489687654,1.59204220634115,1.70458102079263,0.271571161000635,1.38553531814726,1.71915597165815,-0.309993375119255,-0.270163597557805,-0.442761072958113,0.276004768729154,0.840924171412744,1.71388051181434,-0.701198940483944,-0.0486541914608005,-1.42785377695037,0.785026352695662,0.0427697367470792,0.940325553343604,-0.106719426030618,-1.03306110394538,-0.229732414514076,0.628994805375516,0.0238583911467432,-1.16580380950378,0.000661928828855074],"y":[-0.646973071164089,0.507043393509393,-1.5495142296426,1.15275664275731,-0.482623965781697,-0.48103731063475,1.6195645095473,-0.11457483450371,0.60492341944262,0.434688585114613,-0.940619353292927,-0.888332929824213,-1.2597865671603,0.390476493415877,-0.150006721880541,0.44372425123803,-0.468035917197249,-0.552062290949923,0.134851802561162,1.2910991297515,-0.65461152881335,-0.531184325995397,-1.15550245921919,-1.30866579568913,1.42150600679422,0.953130525321978,-0.638100525094127,-0.337381281883365,-0.0711994491691392,0.689429156212615,0.457079463131726,0.0459229289308319,-1.74345960159186,1.09300098711296,-0.817483114723211,-0.511285114127751,2.80226666043466,0.73776503485695,-0.104150918136071,-0.101196790000797,-0.704417320933094,-0.764175435421068,-0.196995693918804,0.225256121888267,1.54983051915253,1.19036840533962,1.20795780123006,-1.3035674061731,-2.3466461030943,1.15050843704645,0.242744717924593,-1.86495924528677,1.49146538937156,1.23625630205609,0.61329423940598,-1.30402997414148,0.367212927276709,-2.67092322505674,0.701695053408859,0.704368423509917,-0.455341823179892,-0.252682546215982,0.531222637018376,1.00831478576628,-0.665880178898804,0.0388438419504518,-0.17516907888505,0.400848079176838,1.49466013611557,-1.07438548604462,0.627564680503327,0.910607291957123,0.35190957186683,0.248505480420068,0.601468986314139,0.746914576399779,0.50446716096324,1.06296588636145,0.210857576842207,1.18316493031752,-0.201511183572452,-0.913323504664636,-0.476319218086463,0.720301618911348,2.10092170481385,-1.78264540575726,0.694296716199744,1.28593512898112,-0.554039608712026,1.01573966276292,-0.499548314797295,0.0681117868103094,0.0576393349321844,0.112564619620442,-0.0768177888767948,-0.925388562276281,-0.0147036671821403,-0.228779680261011,-1.83334223912899,-0.0429205177066877],"z":[-1.25940794201934,0.58553619733256,0.107578701054112,-0.245056163597942,-0.939956702478492,-1.51604612686153,-0.332097308202278,0.444145429639004,-0.332880098726031,-1.99507108210826,-0.540150831731966,-1.98484167996877,0.158714390815664,-0.145084918392642,0.174837454945935,-0.777994285982134,-0.0768705445940789,0.472852715740352,-1.49246799700166,-0.518204272425492,-1.83009614163693,-0.288167019082525,0.59480801602661,2.05115452195338,-1.30002547368745,-1.28391670520462,-1.96868196973436,-0.142699366662888,0.60257239659327,-1.67968496006728,0.0266036381005631,-0.861486775797746,-0.557249521192734,-0.249919393861507,0.382539758407047,0.541369249570525,-0.121276654904493,-0.259800206068362,-0.654509848088446,0.960433501415463,-0.850428769110406,-0.342371818371307,-0.958971312184063,0.0326443157501549,-0.0453560359609688,1.26041432531154,0.56798569684596,-0.128071194569919,0.255889132081083,-0.244904637044622,-4.05462367899436,1.69884350969303,-0.615608269453309,0.564275625549624,2.06809476428187,-0.128660131015075,0.522810447009335,-1.0886700871447,-0.775672865042736,-1.79368505838473,0.192481133808779,-1.08150254870281,-1.30826411219525,0.928975630018251,0.892390282189338,0.269784488466193,0.462969196010466,0.192440796194135,0.129155066379923,0.126449325431493,0.498896953480603,0.118825424256163,-0.0324710590168303,-0.840010123072001,-0.891877243138456,-1.13576654691185,1.79179001570027,1.70421361864037,0.237525764517755,1.30507414984757,2.26092626393404,-0.314784237975002,0.299011647034061,-0.513173001900696,1.43518280821879,0.987069985308235,1.80684525208138,-0.735393311523391,0.0179628530212012,-0.967156049219933,1.17244734266079,0.0511964380283823,0.965648644149303,-0.0484368407366852,-0.794472142093337,-0.668404692690308,0.722917957901768,-0.00795077856628758,-0.595133156061325,-0.588570549761252],"colors":"#BF382A","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter3d","mode":"markers","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"X"},"yaxis":{"title":"Y"},"zaxis":{"title":"Z"}},"hovermode":"closest","showlegend":false},"source":"A","config":{"showSendToCloud":false},"data":[{"x":[-1.37761779898756,0.0691751838003829,-0.148523198867913,-0.197240056222907,-0.369176502212676,-1.29666573298591,-0.310346812655305,0.780677819255621,-0.240707258014235,-2.02908541239572,-0.803808127614545,-2.26571528399049,-0.211621213232409,0.050107804394262,0.386252998321083,-0.654029271852954,0.373744778396359,0.0470598148792455,-1.37419060570018,-0.617896526503643,-1.76250442710538,0.0297753902963301,0.250408251170433,1.98550883386922,-0.930342348044058,-1.66667000626291,-1.09875763814131,-0.509186915136257,0.891155395507608,-1.08310012325676,0.126936157360155,-0.807896473040434,0.795616429267156,-0.331852421777647,0.759658189306003,0.661600346323801,-0.91138371112236,0.0380917344951745,-1.120283472359,0.845089692201766,-0.632895236993638,-1.12089590194681,-0.605435598944707,0.463000454521309,0.407434690663929,1.08456821343565,1.05789685141098,0.119845277323054,0.692487431079643,-0.999988046629375,-3.1287132622856,1.88907662172076,-0.462062350362437,0.831104650400982,1.4866370678458,-0.974937393716204,0.964618275679029,-0.481614352799213,-0.435974390605595,-1.33183474062321,0.227417077667939,-0.649988982388734,-1.40872779085908,0.511195566790329,1.9350544012807,0.561402965048645,0.784130211158397,-0.065583547996956,-0.0306261260023404,-0.213716895633747,0.964322137757326,0.376666350347572,-0.214972890537863,-0.949723119558502,-0.648527090518791,-1.25162489687654,1.59204220634115,1.70458102079263,0.271571161000635,1.38553531814726,1.71915597165815,-0.309993375119255,-0.270163597557805,-0.442761072958113,0.276004768729154,0.840924171412744,1.71388051181434,-0.701198940483944,-0.0486541914608005,-1.42785377695037,0.785026352695662,0.0427697367470792,0.940325553343604,-0.106719426030618,-1.03306110394538,-0.229732414514076,0.628994805375516,0.0238583911467432,-1.16580380950378,0.000661928828855074],"y":[-0.646973071164089,0.507043393509393,-1.5495142296426,1.15275664275731,-0.482623965781697,-0.48103731063475,1.6195645095473,-0.11457483450371,0.60492341944262,0.434688585114613,-0.940619353292927,-0.888332929824213,-1.2597865671603,0.390476493415877,-0.150006721880541,0.44372425123803,-0.468035917197249,-0.552062290949923,0.134851802561162,1.2910991297515,-0.65461152881335,-0.531184325995397,-1.15550245921919,-1.30866579568913,1.42150600679422,0.953130525321978,-0.638100525094127,-0.337381281883365,-0.0711994491691392,0.689429156212615,0.457079463131726,0.0459229289308319,-1.74345960159186,1.09300098711296,-0.817483114723211,-0.511285114127751,2.80226666043466,0.73776503485695,-0.104150918136071,-0.101196790000797,-0.704417320933094,-0.764175435421068,-0.196995693918804,0.225256121888267,1.54983051915253,1.19036840533962,1.20795780123006,-1.3035674061731,-2.3466461030943,1.15050843704645,0.242744717924593,-1.86495924528677,1.49146538937156,1.23625630205609,0.61329423940598,-1.30402997414148,0.367212927276709,-2.67092322505674,0.701695053408859,0.704368423509917,-0.455341823179892,-0.252682546215982,0.531222637018376,1.00831478576628,-0.665880178898804,0.0388438419504518,-0.17516907888505,0.400848079176838,1.49466013611557,-1.07438548604462,0.627564680503327,0.910607291957123,0.35190957186683,0.248505480420068,0.601468986314139,0.746914576399779,0.50446716096324,1.06296588636145,0.210857576842207,1.18316493031752,-0.201511183572452,-0.913323504664636,-0.476319218086463,0.720301618911348,2.10092170481385,-1.78264540575726,0.694296716199744,1.28593512898112,-0.554039608712026,1.01573966276292,-0.499548314797295,0.0681117868103094,0.0576393349321844,0.112564619620442,-0.0768177888767948,-0.925388562276281,-0.0147036671821403,-0.228779680261011,-1.83334223912899,-0.0429205177066877],"z":[-1.25940794201934,0.58553619733256,0.107578701054112,-0.245056163597942,-0.939956702478492,-1.51604612686153,-0.332097308202278,0.444145429639004,-0.332880098726031,-1.99507108210826,-0.540150831731966,-1.98484167996877,0.158714390815664,-0.145084918392642,0.174837454945935,-0.777994285982134,-0.0768705445940789,0.472852715740352,-1.49246799700166,-0.518204272425492,-1.83009614163693,-0.288167019082525,0.59480801602661,2.05115452195338,-1.30002547368745,-1.28391670520462,-1.96868196973436,-0.142699366662888,0.60257239659327,-1.67968496006728,0.0266036381005631,-0.861486775797746,-0.557249521192734,-0.249919393861507,0.382539758407047,0.541369249570525,-0.121276654904493,-0.259800206068362,-0.654509848088446,0.960433501415463,-0.850428769110406,-0.342371818371307,-0.958971312184063,0.0326443157501549,-0.0453560359609688,1.26041432531154,0.56798569684596,-0.128071194569919,0.255889132081083,-0.244904637044622,-4.05462367899436,1.69884350969303,-0.615608269453309,0.564275625549624,2.06809476428187,-0.128660131015075,0.522810447009335,-1.0886700871447,-0.775672865042736,-1.79368505838473,0.192481133808779,-1.08150254870281,-1.30826411219525,0.928975630018251,0.892390282189338,0.269784488466193,0.462969196010466,0.192440796194135,0.129155066379923,0.126449325431493,0.498896953480603,0.118825424256163,-0.0324710590168303,-0.840010123072001,-0.891877243138456,-1.13576654691185,1.79179001570027,1.70421361864037,0.237525764517755,1.30507414984757,2.26092626393404,-0.314784237975002,0.299011647034061,-0.513173001900696,1.43518280821879,0.987069985308235,1.80684525208138,-0.735393311523391,0.0179628530212012,-0.967156049219933,1.17244734266079,0.0511964380283823,0.965648644149303,-0.0484368407366852,-0.794472142093337,-0.668404692690308,0.722917957901768,-0.00795077856628758,-0.595133156061325,-0.588570549761252],"type":"scatter3d","mode":"markers","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+
+But what if there are more than 3 dimensions?
+---
+# Ordination
+
+&lt;br&gt;
+
+The goal of **ordination** is to order the data in some manner. This can be used to reduce high-dimensional data to the most important dimensions. There are many techniques to do ordination.
+
+&lt;br&gt;
+
+In the previous figure, two dimensions were strongly correlated. Can we capture most of the information of the original dataset with a dataset with reduced dimension?
+
+---
+class: center, middle, inverse
+background-image: url("https://ericjoyner.com/wp-content/uploads/2015/09/Tiki-bot.jpg")
+background-position: center
+
+# Principal component analysis
+
+
+---
+#PCA
+
+**PCA** is an ordination method that creates new data axes and preserves the (Euclidian) distance between all observations. New axes are linear combinations of the original axes.
+  
+
++ PCA axes can be ordered by the amount of variation they capture.
+
++ forms the basis for many other multivariate methods
+
++ most commonly used ordination technique
+
++ has been usefully applied in lots of problems throughout biology
+
+---
+# Applications of PCA 
+
++ Create new variables (Remove multicollinearity)
+
++ Reduce high-dimensional dataset (community ecology, gene expression measures, behavioral assays, etch.)
+
++ Visualization
+
+
+---
+# `\(\Sigma\)` and `\(R\)`
+
+PCA can be done using information from the covariance matrix or the correlation matrix
+
+The covariance matrix, `\(\Sigma\)` measures the degree that two variables vary together.
+
+$$\mathrm{Cov}(X_1, X_2) = \frac{1}{n-1}\sum (x_i - \bar{x})(y_i - \bar{y})=\rho \sigma_1 \sigma_2 $$
+
+Recall the covariance matrix for two variables is:
+
+`$$\Sigma = \left[ \begin{matrix} \sigma_1^2 &amp; \rho \sigma_1 \sigma_2 \\
+\rho \sigma_1 \sigma_2 &amp; \sigma_2^2
+\end{matrix} \right]$$`
+
+&lt;br&gt;
+
+
+The corresponding correlation matrix is:
+
+`$$R = \left[ \begin{matrix} 1 &amp; \rho \\
+\rho &amp; 1
+\end{matrix} \right]$$`
+
+---
+# What PCA will do
+
+ Describe a new set of axes, rather than the axes used to make measurements, that capture the statistical properties of the data.
+
+&lt;img src="../Figures/PCA_example.png" width="607" style="display: block; margin: auto;" /&gt;
+
+This can often be used to find out how groups differ from each other.
+
+.footnote[Ringnér, M., 2008. What is principal component analysis?. Nature biotechnology, 26(3), pp.303-304.]
+
+---
+# How do we find this new set of axes?
+
+### Mathemagics!
+
+&lt;img src="https://vignette.wikia.nocookie.net/dexterslab/images/7/7b/MathMagician.jpg/revision/latest?cb=20150329133611" width="60%" style="display: block; margin: auto;" /&gt;
+
+Find the axis that captures the most variation in the data, then get the axis that carries the second most variation in the data, then the third etc. 
+
+
+---
+# The ingredients
+
++ An **eigenvector** is some vector, `\(v\)` that when multiplied by the correlation matrix `\(R\)` is yields the same vector, `\(v\)`. 
+`$$R \cdot v = \lambda v$$` 
+
++ The **eigenvalue**, `\(\lambda\)`, is a scaling term that describes the amount of variation (the variance) along the eigenvector.
+
+These calculations are straighforward to do algebraically but a pain for high dimensions without some special math (matrix algebra) that we won't do.
+
+
+---
+# PCA steps
+
+1. Calculate the correlation matrix, `\(R\)`, or covariance matrix, `\(\Sigma\)`.
+
+2. Calculate the eigenvalues and eigenvectors.
+
+3. Order the eigenvalues by the eigenvalues
+  + The largest eigenvalue is called PC1
+  + The second largest eigenvalue is called PC2, etc.
+  
+In PCA, eigenvectors are called principal components and eigenvalues are the amount of variation in the data explained by that principle component.
+
+---
+# Why is this useful?
+
++ PC's create predictors with **zero** collinearity.
+
++ Instead of having 100 predictor variables can reduce to a handful that explain most of the variability in the data.
+
++ Can visualize complex datasets and pull out pattern
+
+---
+# Penguin dataset
+
+
+```
+## # A tibble: 3 x 8
+##   species island bill_length_mm bill_depth_mm flipper_length_~ body_mass_g sex  
+##   &lt;fct&gt;   &lt;fct&gt;           &lt;dbl&gt;         &lt;dbl&gt;            &lt;int&gt;       &lt;int&gt; &lt;fct&gt;
+## 1 Adelie  Torge~           39.1          18.7              181        3750 male 
+## 2 Adelie  Torge~           39.5          17.4              186        3800 fema~
+## 3 Adelie  Torge~           40.3          18                195        3250 fema~
+## # ... with 1 more variable: year &lt;int&gt;
+```
+
+<div align="center">
+<div id="htmlwidget-16dab38df638d8d9845e" style="width:100%;height:400px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-16dab38df638d8d9845e">{"x":{"visdat":{"1ae057c44086":["function () ","plotlyVisDat"]},"cur_data":"1ae057c44086","attrs":{"1ae057c44086":{"x":[181,186,195,193,190,181,195,182,191,198,185,195,197,184,194,174,180,189,185,180,187,183,187,172,180,178,178,188,184,195,196,190,180,181,184,182,195,186,196,185,190,182,190,191,186,188,190,200,187,191,186,193,181,194,185,195,185,192,184,192,195,188,190,198,190,190,196,197,190,195,191,184,187,195,189,196,187,193,191,194,190,189,189,190,202,205,185,186,187,208,190,196,178,192,192,203,183,190,193,184,199,190,181,197,198,191,193,197,191,196,188,199,189,189,187,198,176,202,186,199,191,195,191,210,190,197,193,199,187,190,191,200,185,193,193,187,188,190,192,185,190,184,195,193,187,201,211,230,210,218,215,210,211,219,209,215,214,216,214,213,210,217,210,221,209,222,218,215,213,215,215,215,215,210,220,222,209,207,230,220,220,213,219,208,208,208,225,210,216,222,217,210,225,213,215,210,220,210,225,217,220,208,220,208,224,208,221,214,231,219,230,229,220,223,216,221,221,217,216,230,209,220,215,223,212,221,212,224,212,228,218,218,212,230,218,228,212,224,214,226,216,222,203,225,219,228,215,228,215,210,219,208,209,216,229,213,230,217,230,222,214,215,222,212,213,192,196,193,188,197,198,178,197,195,198,193,194,185,201,190,201,197,181,190,195,181,191,187,193,195,197,200,200,191,205,187,201,187,203,195,199,195,210,192,205,210,187,196,196,196,201,190,212,187,198,199,201,193,203,187,197,191,203,202,194,206,189,195,207,202,193,210,198],"y":[3750,3800,3250,3450,3650,3625,4675,3200,3800,4400,3700,3450,4500,3325,4200,3400,3600,3800,3950,3800,3800,3550,3200,3150,3950,3250,3900,3300,3900,3325,4150,3950,3550,3300,4650,3150,3900,3100,4400,3000,4600,3425,3450,4150,3500,4300,3450,4050,2900,3700,3550,3800,2850,3750,3150,4400,3600,4050,2850,3950,3350,4100,3050,4450,3600,3900,3550,4150,3700,4250,3700,3900,3550,4000,3200,4700,3800,4200,3350,3550,3800,3500,3950,3600,3550,4300,3400,4450,3300,4300,3700,4350,2900,4100,3725,4725,3075,4250,2925,3550,3750,3900,3175,4775,3825,4600,3200,4275,3900,4075,2900,3775,3350,3325,3150,3500,3450,3875,3050,4000,3275,4300,3050,4000,3325,3500,3500,4475,3425,3900,3175,3975,3400,4250,3400,3475,3050,3725,3000,3650,4250,3475,3450,3750,3700,4000,4500,5700,4450,5700,5400,4550,4800,5200,4400,5150,4650,5550,4650,5850,4200,5850,4150,6300,4800,5350,5700,5000,4400,5050,5000,5100,5650,4600,5550,5250,4700,5050,6050,5150,5400,4950,5250,4350,5350,3950,5700,4300,4750,5550,4900,4200,5400,5100,5300,4850,5300,4400,5000,4900,5050,4300,5000,4450,5550,4200,5300,4400,5650,4700,5700,5800,4700,5550,4750,5000,5100,5200,4700,5800,4600,6000,4750,5950,4625,5450,4725,5350,4750,5600,4600,5300,4875,5550,4950,5400,4750,5650,4850,5200,4925,4875,4625,5250,4850,5600,4975,5500,5500,4700,5500,4575,5500,5000,5950,4650,5500,4375,5850,6000,4925,4850,5750,5200,5400,3500,3900,3650,3525,3725,3950,3250,3750,4150,3700,3800,3775,3700,4050,3575,4050,3300,3700,3450,4400,3600,3400,2900,3800,3300,4150,3400,3800,3700,4550,3200,4300,3350,4100,3600,3900,3850,4800,2700,4500,3950,3650,3550,3500,3675,4450,3400,4300,3250,3675,3325,3950,3600,4050,3350,3450,3250,4050,3800,3525,3950,3650,3650,4000,3400,3775,4100,3775],"z":[39.1,39.5,40.3,36.7,39.3,38.9,39.2,41.1,38.6,34.6,36.6,38.7,42.5,34.4,46,37.8,37.7,35.9,38.2,38.8,35.3,40.6,40.5,37.9,40.5,39.5,37.2,39.5,40.9,36.4,39.2,38.8,42.2,37.6,39.8,36.5,40.8,36,44.1,37,39.6,41.1,36,42.3,39.6,40.1,35,42,34.5,41.4,39,40.6,36.5,37.6,35.7,41.3,37.6,41.1,36.4,41.6,35.5,41.1,35.9,41.8,33.5,39.7,39.6,45.8,35.5,42.8,40.9,37.2,36.2,42.1,34.6,42.9,36.7,35.1,37.3,41.3,36.3,36.9,38.3,38.9,35.7,41.1,34,39.6,36.2,40.8,38.1,40.3,33.1,43.2,35,41,37.7,37.8,37.9,39.7,38.6,38.2,38.1,43.2,38.1,45.6,39.7,42.2,39.6,42.7,38.6,37.3,35.7,41.1,36.2,37.7,40.2,41.4,35.2,40.6,38.8,41.5,39,44.1,38.5,43.1,36.8,37.5,38.1,41.1,35.6,40.2,37,39.7,40.2,40.6,32.1,40.7,37.3,39,39.2,36.6,36,37.8,36,41.5,46.1,50,48.7,50,47.6,46.5,45.4,46.7,43.3,46.8,40.9,49,45.5,48.4,45.8,49.3,42,49.2,46.2,48.7,50.2,45.1,46.5,46.3,42.9,46.1,47.8,48.2,50,47.3,42.8,45.1,59.6,49.1,48.4,42.6,44.4,44,48.7,42.7,49.6,45.3,49.6,50.5,43.6,45.5,50.5,44.9,45.2,46.6,48.5,45.1,50.1,46.5,45,43.8,45.5,43.2,50.4,45.3,46.2,45.7,54.3,45.8,49.8,49.5,43.5,50.7,47.7,46.4,48.2,46.5,46.4,48.6,47.5,51.1,45.2,45.2,49.1,52.5,47.4,50,44.9,50.8,43.4,51.3,47.5,52.1,47.5,52.2,45.5,49.5,44.5,50.8,49.4,46.9,48.4,51.1,48.5,55.9,47.2,49.1,46.8,41.7,53.4,43.3,48.1,50.5,49.8,43.5,51.5,46.2,55.1,48.8,47.2,46.8,50.4,45.2,49.9,46.5,50,51.3,45.4,52.7,45.2,46.1,51.3,46,51.3,46.6,51.7,47,52,45.9,50.5,50.3,58,46.4,49.2,42.4,48.5,43.2,50.6,46.7,52,50.5,49.5,46.4,52.8,40.9,54.2,42.5,51,49.7,47.5,47.6,52,46.9,53.5,49,46.2,50.9,45.5,50.9,50.8,50.1,49,51.5,49.8,48.1,51.4,45.7,50.7,42.5,52.2,45.2,49.3,50.2,45.6,51.9,46.8,45.7,55.8,43.5,49.6,50.8,50.2],"color":["Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Adelie","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Gentoo","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap","Chinstrap"],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter3d","mode":"markers","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"Flipper length"},"yaxis":{"title":"Body mass"},"zaxis":{"title":"Bill length"}},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":[181,186,195,193,190,181,195,182,191,198,185,195,197,184,194,174,180,189,185,180,187,183,187,172,180,178,178,188,184,195,196,190,180,181,184,182,195,186,196,185,190,182,190,191,186,188,190,200,187,191,186,193,181,194,185,195,185,192,184,192,195,188,190,198,190,190,196,197,190,195,191,184,187,195,189,196,187,193,191,194,190,189,189,190,202,205,185,186,187,208,190,196,178,192,192,203,183,190,193,184,199,190,181,197,198,191,193,197,191,196,188,199,189,189,187,198,176,202,186,199,191,195,191,210,190,197,193,199,187,190,191,200,185,193,193,187,188,190,192,185,190,184,195,193,187,201],"y":[3750,3800,3250,3450,3650,3625,4675,3200,3800,4400,3700,3450,4500,3325,4200,3400,3600,3800,3950,3800,3800,3550,3200,3150,3950,3250,3900,3300,3900,3325,4150,3950,3550,3300,4650,3150,3900,3100,4400,3000,4600,3425,3450,4150,3500,4300,3450,4050,2900,3700,3550,3800,2850,3750,3150,4400,3600,4050,2850,3950,3350,4100,3050,4450,3600,3900,3550,4150,3700,4250,3700,3900,3550,4000,3200,4700,3800,4200,3350,3550,3800,3500,3950,3600,3550,4300,3400,4450,3300,4300,3700,4350,2900,4100,3725,4725,3075,4250,2925,3550,3750,3900,3175,4775,3825,4600,3200,4275,3900,4075,2900,3775,3350,3325,3150,3500,3450,3875,3050,4000,3275,4300,3050,4000,3325,3500,3500,4475,3425,3900,3175,3975,3400,4250,3400,3475,3050,3725,3000,3650,4250,3475,3450,3750,3700,4000],"z":[39.1,39.5,40.3,36.7,39.3,38.9,39.2,41.1,38.6,34.6,36.6,38.7,42.5,34.4,46,37.8,37.7,35.9,38.2,38.8,35.3,40.6,40.5,37.9,40.5,39.5,37.2,39.5,40.9,36.4,39.2,38.8,42.2,37.6,39.8,36.5,40.8,36,44.1,37,39.6,41.1,36,42.3,39.6,40.1,35,42,34.5,41.4,39,40.6,36.5,37.6,35.7,41.3,37.6,41.1,36.4,41.6,35.5,41.1,35.9,41.8,33.5,39.7,39.6,45.8,35.5,42.8,40.9,37.2,36.2,42.1,34.6,42.9,36.7,35.1,37.3,41.3,36.3,36.9,38.3,38.9,35.7,41.1,34,39.6,36.2,40.8,38.1,40.3,33.1,43.2,35,41,37.7,37.8,37.9,39.7,38.6,38.2,38.1,43.2,38.1,45.6,39.7,42.2,39.6,42.7,38.6,37.3,35.7,41.1,36.2,37.7,40.2,41.4,35.2,40.6,38.8,41.5,39,44.1,38.5,43.1,36.8,37.5,38.1,41.1,35.6,40.2,37,39.7,40.2,40.6,32.1,40.7,37.3,39,39.2,36.6,36,37.8,36,41.5],"type":"scatter3d","mode":"markers","name":"Adelie","marker":{"color":"rgba(102,194,165,1)","line":{"color":"rgba(102,194,165,1)"}},"textfont":{"color":"rgba(102,194,165,1)"},"error_y":{"color":"rgba(102,194,165,1)"},"error_x":{"color":"rgba(102,194,165,1)"},"line":{"color":"rgba(102,194,165,1)"},"frame":null},{"x":[192,196,193,188,197,198,178,197,195,198,193,194,185,201,190,201,197,181,190,195,181,191,187,193,195,197,200,200,191,205,187,201,187,203,195,199,195,210,192,205,210,187,196,196,196,201,190,212,187,198,199,201,193,203,187,197,191,203,202,194,206,189,195,207,202,193,210,198],"y":[3500,3900,3650,3525,3725,3950,3250,3750,4150,3700,3800,3775,3700,4050,3575,4050,3300,3700,3450,4400,3600,3400,2900,3800,3300,4150,3400,3800,3700,4550,3200,4300,3350,4100,3600,3900,3850,4800,2700,4500,3950,3650,3550,3500,3675,4450,3400,4300,3250,3675,3325,3950,3600,4050,3350,3450,3250,4050,3800,3525,3950,3650,3650,4000,3400,3775,4100,3775],"z":[46.5,50,51.3,45.4,52.7,45.2,46.1,51.3,46,51.3,46.6,51.7,47,52,45.9,50.5,50.3,58,46.4,49.2,42.4,48.5,43.2,50.6,46.7,52,50.5,49.5,46.4,52.8,40.9,54.2,42.5,51,49.7,47.5,47.6,52,46.9,53.5,49,46.2,50.9,45.5,50.9,50.8,50.1,49,51.5,49.8,48.1,51.4,45.7,50.7,42.5,52.2,45.2,49.3,50.2,45.6,51.9,46.8,45.7,55.8,43.5,49.6,50.8,50.2],"type":"scatter3d","mode":"markers","name":"Chinstrap","marker":{"color":"rgba(252,141,98,1)","line":{"color":"rgba(252,141,98,1)"}},"textfont":{"color":"rgba(252,141,98,1)"},"error_y":{"color":"rgba(252,141,98,1)"},"error_x":{"color":"rgba(252,141,98,1)"},"line":{"color":"rgba(252,141,98,1)"},"frame":null},{"x":[211,230,210,218,215,210,211,219,209,215,214,216,214,213,210,217,210,221,209,222,218,215,213,215,215,215,215,210,220,222,209,207,230,220,220,213,219,208,208,208,225,210,216,222,217,210,225,213,215,210,220,210,225,217,220,208,220,208,224,208,221,214,231,219,230,229,220,223,216,221,221,217,216,230,209,220,215,223,212,221,212,224,212,228,218,218,212,230,218,228,212,224,214,226,216,222,203,225,219,228,215,228,215,210,219,208,209,216,229,213,230,217,230,222,214,215,222,212,213],"y":[4500,5700,4450,5700,5400,4550,4800,5200,4400,5150,4650,5550,4650,5850,4200,5850,4150,6300,4800,5350,5700,5000,4400,5050,5000,5100,5650,4600,5550,5250,4700,5050,6050,5150,5400,4950,5250,4350,5350,3950,5700,4300,4750,5550,4900,4200,5400,5100,5300,4850,5300,4400,5000,4900,5050,4300,5000,4450,5550,4200,5300,4400,5650,4700,5700,5800,4700,5550,4750,5000,5100,5200,4700,5800,4600,6000,4750,5950,4625,5450,4725,5350,4750,5600,4600,5300,4875,5550,4950,5400,4750,5650,4850,5200,4925,4875,4625,5250,4850,5600,4975,5500,5500,4700,5500,4575,5500,5000,5950,4650,5500,4375,5850,6000,4925,4850,5750,5200,5400],"z":[46.1,50,48.7,50,47.6,46.5,45.4,46.7,43.3,46.8,40.9,49,45.5,48.4,45.8,49.3,42,49.2,46.2,48.7,50.2,45.1,46.5,46.3,42.9,46.1,47.8,48.2,50,47.3,42.8,45.1,59.6,49.1,48.4,42.6,44.4,44,48.7,42.7,49.6,45.3,49.6,50.5,43.6,45.5,50.5,44.9,45.2,46.6,48.5,45.1,50.1,46.5,45,43.8,45.5,43.2,50.4,45.3,46.2,45.7,54.3,45.8,49.8,49.5,43.5,50.7,47.7,46.4,48.2,46.5,46.4,48.6,47.5,51.1,45.2,45.2,49.1,52.5,47.4,50,44.9,50.8,43.4,51.3,47.5,52.1,47.5,52.2,45.5,49.5,44.5,50.8,49.4,46.9,48.4,51.1,48.5,55.9,47.2,49.1,46.8,41.7,53.4,43.3,48.1,50.5,49.8,43.5,51.5,46.2,55.1,48.8,47.2,46.8,50.4,45.2,49.9],"type":"scatter3d","mode":"markers","name":"Gentoo","marker":{"color":"rgba(141,160,203,1)","line":{"color":"rgba(141,160,203,1)"}},"textfont":{"color":"rgba(141,160,203,1)"},"error_y":{"color":"rgba(141,160,203,1)"},"error_x":{"color":"rgba(141,160,203,1)"},"line":{"color":"rgba(141,160,203,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+
+
+---
+# Calculating the principle components
+
+
+```r
+library(vegan)
+peng.pr &lt;- prcomp(~bill_length_mm + bill_depth_mm + flipper_length_mm + body_mass_g, data=penguins, scale=TRUE) #always set scale to TRUE 
+summary(peng.pr)
+```
+
+```
+## Importance of components:
+##                           PC1    PC2     PC3     PC4
+## Standard deviation     1.6569 0.8821 0.60716 0.32846
+## Proportion of Variance 0.6863 0.1945 0.09216 0.02697
+## Cumulative Proportion  0.6863 0.8809 0.97303 1.00000
+```
+
+---
+#SCREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+Screeplots illustrate the amount of variation captured by the principal component
+
+```r
+library(ggbiplot)
+ggscreeplot(peng.pr)
+```
+
+&lt;img src="15_3_PCA_files/figure-html/unnamed-chunk-9-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+---
+# Biplots
+
+Illustrate the data on the first two principal component axes
+
+
+```r
+ggbiplot(peng.pr, groups=penguins$species) #the first two PC axes
+```
+
+&lt;img src="15_3_PCA_files/figure-html/unnamed-chunk-10-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+The arrows here illustrate the original axes projected onto the new axes.
+---
+# Transforming data to the PCs
+
+
+```r
+peng.pr$rotation
+```
+
+```
+##                          PC1         PC2        PC3        PC4
+## bill_length_mm     0.4537532 -0.60019490 -0.6424951  0.1451695
+## bill_depth_mm     -0.3990472 -0.79616951  0.4258004 -0.1599044
+## flipper_length_mm  0.5768250 -0.00578817  0.2360952 -0.7819837
+## body_mass_g        0.5496747 -0.07646366  0.5917374  0.5846861
+```
+
+PC1 = 0.45 `\(\cdot\)` `bill_length_mm` - 0.39 `\(\cdot\)` `bill_depth_mm` + 0.57 `\(\cdot\)` `flipper_length_mm` + 0.54 `\(\cdot\)` `body_mass_g`
+
+PC2 = -0.60 `\(\cdot\)` `bill_length_mm` - 0.79 `\(\cdot\)` `bill_depth_mm` - 0.01 `\(\cdot\)` `flipper_length_mm` + 0.08 `\(\cdot\)` `body_mass_g`
+
+etc. for PC3, PC4
+
+
+```r
+peng.pcvals &lt;- predict(peng.pr) #do these calculations quickly with predict
+```
+
+---
+# Interpreting the PCs
+
+
+.pull-left[
+
+```r
+library(corrplot)
+R &lt;- cor(penguins[,3:6], peng.pcvals)
+corrplot(R,  method = "circle", addCoef.col = "grey")
+```
+
+&lt;img src="15_3_PCA_files/figure-html/unnamed-chunk-13-1.png" width="80%" style="display: block; margin: auto;" /&gt;
+]
+.pull-right[
+&lt;br&gt;
+
+ **PC1** is strongly, positively correlated with Body mass, flipper length,  and bill length. Negative correlation wiht bill depth. 
+
+**PC2** negative correlated with bill length and bill depth.
+]
+---
+# Beer style data
+
+&lt;img src="https://iff08xfn21-flywheel.netdna-ssl.com/wp-content/uploads/2016/09/different-craft-beer-styles.jpg" style="display: block; margin: auto;" /&gt;
+
+
+```
+##            Style  ABV   IBU Color BoilTime
+## 47 Oatmeal Stout 5.21 37.34 42.09       90
+## 51       Witbier 5.22 18.67  3.67       60
+## 75       Witbier 5.87 23.21  3.11       90
+## 77       Witbier 4.85 20.08  3.33       90
+## 82       Witbier 5.22 16.79  4.31       90
+## 95       Witbier 5.36 18.92  3.26       90
+```
+
+.[https://www.brewersfriend.com/]
+
+---
+# How many PCs do we need?
+
+
+```
+## Importance of components:
+##                           PC1    PC2    PC3    PC4
+## Standard deviation     1.2970 1.0093 0.9057 0.6920
+## Proportion of Variance 0.4205 0.2547 0.2051 0.1197
+## Cumulative Proportion  0.4205 0.6752 0.8803 1.0000
+```
+
+&lt;img src="15_3_PCA_files/figure-html/unnamed-chunk-16-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+---
+# Beer style biplot
+
+### Can we distinguish beer styles with these measurements?
+&lt;img src="15_3_PCA_files/figure-html/unnamed-chunk-17-1.png" width="60%" style="display: block; margin: auto;" /&gt;
+
+---
+# 
+
+
+```r
+cor(beer.pr.dat, predict(beer.pr))
+```
+
+```
+##                 PC1         PC2        PC3        PC4
+## ABV       0.5560250  0.33785630  0.7585116 -0.0367348
+## IBU       0.8081254  0.06764335 -0.3519418 -0.4674341
+## Color     0.8322517 -0.10420028 -0.2187687  0.4986379
+## BoilTime -0.1652363  0.94289211 -0.2707173  0.1018018
+```
+
+So can we differentiate beers by PC components?
+
+---
+# Pottery example
+
+The pottery data set contains the chemical composition of ancient pottery found at four sites in Great Britain:
+
+
+
+```r
+pottery.dat &lt;- read.csv("../Data/pottery.csv")
+head(pottery.dat)  
+```
+
+```
+##        Site   Al   Fe   Mg   Ca   Na
+## 1 Llanedyrn 14.4 7.00 4.30 0.15 0.51
+## 2 Llanedyrn 13.8 7.08 3.43 0.12 0.17
+## 3 Llanedyrn 14.6 7.09 3.88 0.13 0.20
+## 4 Llanedyrn 11.5 6.37 5.64 0.16 0.14
+## 5 Llanedyrn 13.8 7.06 5.34 0.20 0.20
+## 6 Llanedyrn 10.9 6.26 3.47 0.17 0.22
+```
+Can we identify sites by chemical composition?
+
+.footnote[http://wilkelab.org/classes/SDS348/data_sets/pottery.csv]
+
+---
+# How many PCs do we need?
+
+
+```r
+pot.pr &lt;- prcomp(pottery.dat[,-1], scale=TRUE)
+ggscreeplot(pot.pr)
+```
+
+&lt;img src="15_3_PCA_files/figure-html/unnamed-chunk-20-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# Interpreting the PCs
+
+
+```r
+ggbiplot(pot.pr, groups=pottery.dat$Site)
+```
+
+&lt;img src="15_3_PCA_files/figure-html/unnamed-chunk-21-1.png" style="display: block; margin: auto;" /&gt;
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
